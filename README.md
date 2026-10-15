@@ -24,6 +24,17 @@ You can start editing the page by modifying [src/app/page.tsx](./src/app/page.ts
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Testing
+
+Run `npm run check` after completing each requirement. It runs ESLint, TypeScript checking, and the full Vitest suite. Add or update tests for the requirement before running the checks.
+
+- `npm test`: run all unit and component tests once.
+- `npm run test:watch`: rerun tests as files change.
+- `npm run typecheck`: check TypeScript without emitting files.
+- `npm run build`: verify the production build when application integration changes.
+
+See [the testing guide](./docs/testing.md) for test locations, external-service mocks, and framework limitations.
+
 ## Supabase
 
 1. Copy [.env.example](./.env.example) to `.env.local` and fill in the Project URL and publishable key (a legacy anon key also works).

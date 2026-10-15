@@ -30,3 +30,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Project language
 
 Use English for all project content, including documentation, source comments, SQL comments, metadata descriptions, and interface text.
+
+## Testing workflow
+
+- Use Vitest and React Testing Library for business logic and component tests. See `docs/testing.md`.
+- For every implemented requirement, add or update meaningful behavior tests for its acceptance criteria, including relevant failure cases.
+- Run `npm run check` after completing each requirement. Fix failures before reporting completion, and report any checks that could not run.
+- Keep routine tests deterministic and independent of real Supabase data, Storage, and paid AI APIs. Use explicit test fixtures and mocks.
+- Vitest does not validate complete Next.js request lifecycles or async Server Components. Add browser end-to-end coverage when requirements depend on those flows; do not claim unit tests cover them.

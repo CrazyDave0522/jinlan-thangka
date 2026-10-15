@@ -57,9 +57,13 @@ The following versions and ranges are declared in `package.json`:
 
 ### Testing Strategy
 
-Available checks are `npm run lint`, `npx tsc --noEmit`, and `npm run build`. These commands check lint rules, TypeScript types, and the production build respectively; their availability does not imply they have passed for any particular change.
+Use **Vitest with React Testing Library** for unit tests, synchronous React component tests, and integration tests that can run independently of a Next.js server. Configuration lives in `vitest.config.mts`; shared DOM matchers and cleanup live in `tests/setup.ts`. See [docs/testing.md](../docs/testing.md).
 
-There is no test script or configured unit, integration, or end-to-end test framework. Test tooling, CI requirements, and coverage expectations remain to be agreed. Future database and authorization changes should include checks of constraints and intended allowed/denied access before deployment.
+For every implemented requirement, add or update behavior tests for its acceptance criteria and relevant failure paths, then run `npm run check` (lint, TypeScript checks, and the full Vitest suite). Fix failures before reporting completion; disclose any checks that could not run. Use `npm test` for a single suite run and `npm run test:watch` during development. Run `npm run build` for changes that affect application integration or build behavior.
+
+Routine tests use explicit fixtures and mocked external boundaries, not real Supabase data or paid DeepSeek calls. The existing tests validate configuration errors and render the starter home page; they do not validate the planned AI features. Update the home-page smoke test when replacing the starter screen.
+
+Vitest does not directly support async Server Components or replace real browser end-to-end tests of Next.js routing, cookies, uploads, and streaming. Add browser coverage when implemented requirements depend on those flows. No browser test framework, automated CI workflow, or coverage threshold is configured yet.
 
 Demo acceptance examples should cover text questions, matching a known database artwork from an image, subject/deity/style explanations, ambiguous or unmatched images, insufficient database evidence, and separation of general knowledge from database-supported claims. Citation checks must verify that referenced records and sources exist and actually support the associated claims. The owner confirms that there is currently no project data. Sample records, images, and concrete acceptance questions are explicitly deferred until data is available.
 

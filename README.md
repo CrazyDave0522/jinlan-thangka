@@ -24,7 +24,21 @@ You can start editing the page by modifying [src/app/page.tsx](./src/app/page.ts
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Supabase
+
+1. Copy [.env.example](./.env.example) to `.env.local` and fill in the Project URL and publishable key (a legacy anon key also works).
+2. Add the same variables in Vercel → Project Settings → Environment Variables for the environments you use, then redeploy. Public variables are embedded at build time.
+3. Import `createClient` from [the browser client](./src/lib/supabase/client.ts) in Client Components, or await `createClient` from [the server client](./src/lib/supabase/server.ts) in Server Components, Server Actions, and Route Handlers.
+
+The [proxy](./src/proxy.ts) refreshes Auth cookies and preserves cache headers. It does not restrict access to pages. Login UI, protected routes, and database types will be added once the authentication requirements and existing schema are supplied. Server-side authorization must verify `auth.getClaims()` (or `auth.getUser()` where appropriate), rather than trusting `getSession()`.
+
+Existing tables are accessed through the Supabase Data API and their Row Level Security policies. No tables or policies are created or changed by this setup. Provide table definitions, relationships, and intended read/write permissions before adding queries. Never put a secret/service_role key in a `NEXT_PUBLIC_` variable.
+
+This project enables Cache Components: place server components that read request cookies/data beneath a Suspense boundary, and do not put a session-specific Supabase client in a shared cache. Auth-changing Route Handlers must also return private/no-store responses.
+
+Setup follows the [Supabase Next.js SSR guide](https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs).
+
+## Next.js Resources
 
 To learn more about Next.js, take a look at the following resources:
 

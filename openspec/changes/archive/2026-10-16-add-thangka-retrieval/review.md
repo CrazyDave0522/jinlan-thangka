@@ -29,7 +29,7 @@ Deployment/access verification is a separate integration check, not a reason to 
 | Database setup | Incremental validated STABLE SECURITY INVOKER function and scoped read access after existing metadata inspection; no initializer rerun, broad write/routine grants or silent policy replacement |
 | Verification | Actual SQL tests on isolated synthetic fixtures; live schema/types/grants/RLS/Data API smoke checks separately from mocked tests; no artificial data in the owner's database |
 
-Detailed normative scenarios are in [spec.md](specs/thangka-retrieval/spec.md); implementation decisions and numeric budgets are in [design.md](design.md); executable delivery work is tracked in [tasks.md](tasks.md). [retrieval-setup.md](../../../docs/retrieval-setup.md) provides the read-only inspection/type-generation procedure.
+Detailed normative scenarios are in [spec.md](specs/thangka-retrieval/spec.md); implementation decisions and numeric budgets are in [design.md](design.md); executable delivery work is tracked in [tasks.md](tasks.md). [retrieval-setup.md](../../../../docs/retrieval-setup.md) provides the read-only inspection/type-generation procedure.
 
 ## Accepted Limits and Outstanding Execution
 

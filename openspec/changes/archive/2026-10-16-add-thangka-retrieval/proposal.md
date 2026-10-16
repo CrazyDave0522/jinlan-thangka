@@ -2,7 +2,7 @@
 
 ## Status
 
-Selected for refinement on 2026-10-16, item 4 of 8, on `feat/add-thangka-retrieval` based on merged `main` at `0490ac9`. Interface, text conversation, and page-local image submission are implemented, accepted, archived and merged. The owner approved implementation on 2026-10-16. The server retrieval service, incremental SQL and local tests are implemented; the owner completed remote setup and anon smoke checks now pass for all eight tables and the RPC; live-generated type and final metadata/access checks pass; the owner has reviewed and accepted the implementation; archival remains pending. See [verification.md](verification.md).
+Selected for refinement on 2026-10-16, item 4 of 8, on `feat/add-thangka-retrieval` based on merged `main` at `0490ac9`. Interface, text conversation, and page-local image submission are implemented, accepted, archived and merged. The owner approved implementation on 2026-10-16. The server retrieval service, incremental SQL and local tests are implemented; the owner completed remote setup and anon smoke checks now pass for all eight tables and the RPC; live-generated type and final metadata/access checks pass; the owner has reviewed and accepted the implementation; archived at the owner's explicit request on 2026-10-16. See [verification.md](verification.md).
 
 ## Why
 
@@ -14,7 +14,7 @@ On 2026-10-16 the owner confirmed that this database was created specifically fo
 
 Retain review, attribution and evidence states so later answers can express uncertainty; eligibility does not turn an unverified or disputed claim into established fact. The application retrieval boundary remains server-only/read-only; database read configuration must still be verified technically rather than assumed from this product decision.
 
-## Intended Scope
+## What Changes
 
 - Provide a server-only retrieval service over the existing eight `thangka` tables. Use structured lookup/search inputs rather than model-generated SQL.
 - Retrieve artists/artworks and their related artist associations, image metadata and source relationships. Preserve entity/source UUIDs and source-link IDs, `supported_field`, `locator` and `evidence_notes`. Preserve each `artwork_artists` association by its actual composite key `(artwork_id, artist_id, role)`; this table has no standalone `id`.
@@ -33,13 +33,13 @@ The owner has already confirmed empty existing tables and no artwork images/buck
 
 ## Dependencies and Consumers
 
-No new UI dependency. Current project/database conventions are in [project.md](../../project.md) and [database.md](../../../docs/database.md). The existing source schema is a reference for verification, not an incremental migration.
+No new UI dependency. Current project/database conventions are in [project.md](../../../project.md) and [database.md](../../../../docs/database.md). The existing source schema is a reference for verification, not an incremental migration.
 
 `add-grounded-answers` consumes structured evidence; `add-image-interpretation` consumes candidate/rights-aware image metadata; `add-answer-sources` consumes exact record/source relationships. This requirement must not assert that any of those consumers is already implemented.
 
 ## Refined Decisions
 
-[design.md](design.md) fixes query/result/error types, permitted fields, literal Unicode matching, ranking, root probing, finite graph traversal, projections, numeric budgets and cancellation behavior. [docs/retrieval-setup.md](../../../docs/retrieval-setup.md) specifies schema/grant/RLS inspection, incremental setup, type generation and live smoke verification. [review.md](review.md) records how consistency gaps were resolved. No owner product choice remains open.
+[design.md](design.md) fixes query/result/error types, permitted fields, literal Unicode matching, ranking, root probing, finite graph traversal, projections, numeric budgets and cancellation behavior. [docs/retrieval-setup.md](../../../../docs/retrieval-setup.md) specifies schema/grant/RLS inspection, incremental setup, type generation and live smoke verification. [review.md](review.md) records how consistency gaps were resolved. No owner product choice remains open.
 
 An API empty list establishes no visible matches, not unrestricted visibility: RLS can filter rows without an error. SQL function tests must exercise the real function with isolated synthetic fixtures; mocked SDK tests do not establish SQL or live access correctness. No remote permissions, functions or credentials have been changed during refinement. The owner subsequently approved implementation and applied the reviewed setup. Final table/RPC metadata, anon smoke checks and live-generated type comparisons now pass.
 

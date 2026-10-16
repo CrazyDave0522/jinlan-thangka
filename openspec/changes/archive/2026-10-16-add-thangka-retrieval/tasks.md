@@ -34,4 +34,4 @@ The owner supplied all 124 matching column definitions, 42 matching constraints,
 - [x] 4.4 Test raw streamed response-byte limits, cumulative/result sizing, deadline/caller abort including ignored abort and late completion, timer/listener cleanup, and absence of business writes, AI/Storage calls or session authority.
 - [x] 4.5 Perform and record actual anon schema/type/grant/RLS/eight-table/RPC smoke verification after scoped setup. Empty-table success is not proof of full row visibility; leave unavailable checks outstanding.
 - [x] 4.6 Run `npm run check`, production build, strict OpenSpec and whitespace checks. Retain existing Chromium regressions for application/dependency integration; introduce no public search test page.
-- [ ] 4.7 Write verification results and remaining SQL/live limitations, obtain user acceptance and archive only after required gates are satisfied.
+- [x] 4.7 Write verification results and remaining SQL/live limitations, obtain user acceptance and archive only after required gates are satisfied.

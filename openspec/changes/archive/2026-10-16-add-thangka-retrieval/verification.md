@@ -2,7 +2,7 @@
 
 ## Status and Scope
 
-Implemented on `feat/add-thangka-retrieval` after owner approval on 2026-10-16. Required implementation, owner-supplied metadata review, actual anon table/RPC smoke checks and live-generated type comparison have passed. The change remains active accepted by the owner before committing/pushing; archival remains pending. The owner applied the reviewed function/read-access scripts and Data API configuration; the assistant's live checks and generation were read-only and did not insert business records or change permissions.
+Implemented on `feat/add-thangka-retrieval` after owner approval on 2026-10-16. Required implementation, owner-supplied metadata review, actual anon table/RPC smoke checks and live-generated type comparison have passed. The change was accepted by the owner before committing/pushing and is now archived; archived at the owner's explicit request on 2026-10-16. The owner applied the reviewed function/read-access scripts and Data API configuration; the assistant's live checks and generation were read-only and did not insert business records or change permissions.
 
 The implementation provides `retrieveArchive` in `src/lib/retrieval/service.ts`, strict query/result contracts, explicit row projections/validation, finite evidence expansion and shared request/byte/row/time budgets. It preserves composite association keys, scoped sources, uncertainty and image metadata. The Supabase client uses the real generated Database type in `database.generated.ts`; reference-derived runtime descriptors and validated CHECK-state domain types remain distinct. No page, public application endpoint, chat/DeepSeek integration or Storage behavior was added.
 
@@ -46,7 +46,7 @@ The owner supplied all 42 primary-key, foreign-key, unique and CHECK constraints
 
 After the owner confirmed completing Data API exposure and row-limit configuration, repeated `node --env-file=.env.local scripts/verify-archive.mjs` using the existing public application credentials. All eight projected table reads and `search_archive_candidates` returned HTTP 200; the command exited successfully. The earlier `PGRST106` exposure error is resolved. No rows, permissions or schemas were changed by this check, and no record contents or credentials were printed.
 
-Owner-reported installation and actual anon API reachability are now established separately from the earlier pre-setup metadata inspections. Table smoke reads use `limit=0`; the RPC uses a synthetic exact term. These checks establish reachable reads/function execution, not a complete application service lifecycle, full row visibility, live-generated type agreement, or relevance on a populated archive. Subsequent owner-supplied final policies/function metadata passed; CLI-generated type comparison remains pending. The owner reports the API row limit was configured as requested; this setting has not been independently inspected through an admin interface.
+Owner-reported installation and actual anon API reachability are now established separately from the earlier pre-setup metadata inspections. Table smoke reads use `limit=0`; the RPC uses a synthetic exact term. These checks establish reachable reads/function execution, not a complete application service lifecycle, full row visibility, live-generated type agreement, or relevance on a populated archive. Subsequent owner-supplied final policies/function metadata passed; the later successful CLI-generated type comparison is recorded below. The owner reports the API row limit was configured as requested; this setting has not been independently inspected through an admin interface.
 
 ## Owner-Supplied Post-Setup Permissions and Policies
 
@@ -75,12 +75,16 @@ Repeated `npm run check`: lint, TypeScript and 202 tests across 17 files pass. P
 - Supplied live metadata: 124 columns and 42 constraints match; final anon USAGE/SELECT present, write grants absent; eight exact SELECT policies; RPC signature, STABLE/invoker/empty search path and exact EXECUTE grants match.
 - Actual anon Data API reads and search RPC: HTTP 200, initial exposure error resolved. The owner confirmed the requested maximum-row configuration.
 - Actual live-generated types: saved and used by the SDK; row/RPC comparisons pass. No CLI authentication or type-generation gate remains.
-- Verification record and implementation tasks are updated. The owner has reviewed and accepted the implementation; archival remains pending; this follow-up does not itself archive, commit, push or merge.
+- Verification record and implementation tasks are updated. The owner has reviewed and accepted the implementation; archived at the owner's explicit request on 2026-10-16; archival does not establish application deployment or merge to main.
 - The primary-image partial index and update triggers were not independently queried from the deployed database. Generated Insert definitions reflect default/required-field behavior; no claim is made that every deployed default SQL expression was separately compared. The approved runtime is read-only and does not depend on performing inserts or switching primary-image flags.
 - Real-data relevance, deployed collation/performance, full application retrieval-to-AI lifecycle and transaction-consistent/global evidence remain outside these empty-archive/synthetic checks. No real artwork dataset is required to complete this infrastructure increment.
 
-The complete procedure is in [retrieval-setup.md](../../../docs/retrieval-setup.md). Real-data relevance, deployed collation/performance and future AI/image matching remain unproven by synthetic/local tests. Server-only code does not hide the intentionally public-key-readable Data API, and successful evidence expansion is only for the documented finite visible graph rather than a transaction-consistent global snapshot.
+The complete procedure is in [retrieval-setup.md](../../../../docs/retrieval-setup.md). Real-data relevance, deployed collation/performance and future AI/image matching remain unproven by synthetic/local tests. Server-only code does not hide the intentionally public-key-readable Data API, and successful evidence expansion is only for the documented finite visible graph rather than a transaction-consistent global snapshot.
 
 ## Owner Acceptance and Publication
 
-The owner confirmed reviewing the implementation and requested committing/pushing the current code. User acceptance is recorded; the OpenSpec change remains active until archival. The commit contains implementation, tests, incremental setup and verification documentation; Supabase CLI local cache files are excluded.
+The owner confirmed reviewing the implementation and requested committing/pushing the current code. User acceptance is recorded; the owner subsequently requested archival and the change is archived. The commit contains implementation, tests, incremental setup and verification documentation; Supabase CLI local cache files are excluded.
+
+## Archive Authorization
+
+After reviewing and accepting the implementation and requesting its push (commit `57d2344`), the owner explicitly requested OpenSpec archival. All implementation and required verification tasks are complete. The archive records the implemented server retrieval capability; application deployment/merge and future AI consumption are not claimed by this archive.

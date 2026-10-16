@@ -1,11 +1,11 @@
 # Demo Implementation Roadmap
 
-These eight change proposals record the agreed implementation breakdown. Item 1 has been refined, approved, implemented locally, verified, and archived at the owner's request on 2026-10-16; it is not yet deployed. Its current capability is recorded in [specs/chat-interface/spec.md](specs/chat-interface/spec.md). Items 2–8 remain scope drafts. Detailed behavior, failure scenarios, technical decisions, and implementation tasks are written when each change is selected.
+These eight change proposals record the agreed implementation breakdown. Item 1 has been refined, approved, implemented locally, verified, and archived at the owner's request on 2026-10-16; it is not yet deployed. Its current capability is recorded in [specs/chat-interface/spec.md](specs/chat-interface/spec.md). Item 2 was implemented, locally verified, manually accepted, and archived at the owner's request on 2026-10-16 before deployment; its current capability is recorded in [specs/text-conversation/spec.md](specs/text-conversation/spec.md); items 3–8 remain scope drafts. Detailed behavior, failure scenarios, technical decisions, and implementation tasks are written when each change is selected.
 
 | Order | Change                                                                   | Scope                                           |
 | ----- | ------------------------------------------------------------------------ | ----------------------------------------------- |
 | 1     | [add-chat-interface](changes/archive/2026-10-16-add-chat-interface/proposal.md)             | Conversation interface                          |
-| 2     | [add-text-conversation](changes/add-text-conversation/proposal.md)       | Text messages and conversation context          |
+| 2     | [add-text-conversation](changes/archive/2026-10-16-add-text-conversation/proposal.md)       | Text messages and conversation context          |
 | 3     | [add-image-upload](changes/add-image-upload/proposal.md)                 | Image upload and message attachments            |
 | 4     | [add-thangka-retrieval](changes/add-thangka-retrieval/proposal.md)       | Thangka database retrieval                      |
 | 5     | [add-grounded-answers](changes/add-grounded-answers/proposal.md)         | Database-grounded AI answers                    |

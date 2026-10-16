@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BookOpen, Bot, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,15 +42,16 @@ function Attachment({ image }: { image: NonNullable<Extract<ChatMessage, { role:
   );
 }
 
-export function Message({ message }: { message: ChatMessage }) {
+export function Message({ message, footer }: { message: ChatMessage; footer?: ReactNode }) {
   if (message.role === "user") {
     return (
-      <li className="flex justify-end" aria-label="用户消息">
+      <li className="flex flex-col items-end" aria-label="用户消息">
         <div className="flex max-w-[90%] min-w-0 flex-col gap-3 rounded-xl bg-muted p-4 sm:max-w-[75%]">
           <span className="sr-only">你</span>
           {message.image && <Attachment image={message.image} />}
           {message.text && <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{message.text}</p>}
         </div>
+        {footer}
       </li>
     );
   }

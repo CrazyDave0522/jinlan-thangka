@@ -60,7 +60,7 @@ describe("conversation presentation", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("keeps an editable draft including Enter without sending requests or adding messages", async () => {
+  it("supports isolated presentation without a conversation controller", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -70,7 +70,7 @@ describe("conversation presentation", () => {
     expect(field).toHaveValue("介绍唐卡\n继续编辑");
     expect(screen.getByRole("button", { name: "发送消息" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "上传图片" })).toBeDisabled();
-    expect(field).toHaveAccessibleDescription(expect.stringContaining("发送和上传功能暂未开放"));
+    expect(field).toHaveAccessibleDescription(expect.stringContaining("图片上传功能暂未开放"));
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });

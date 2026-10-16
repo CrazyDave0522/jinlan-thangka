@@ -48,20 +48,27 @@ The system SHALL display supplied user text and optional image attachments on th
 - **WHEN** a supplied message has no image or an answer has no content for an optional section or source area
 - **THEN** the page omits that absent content without rendering broken image elements, empty headings, invented sources, or an empty source control.
 
-### Requirement: Composer presentation without service actions
+### Requirement: Conversation composer
 
-The system SHALL provide a locally editable `消息内容` field with the specified placeholder and helper copy. Send and upload SHALL remain disabled with a temporary notice until their owning changes enable them. That notice SHALL reflect remaining unavailable actions and be removed when both actions are enabled. Editing or pressing Enter SHALL NOT send requests, create messages, or clear the draft.
+The system SHALL provide an editable `消息内容` field using the established visual system, placeholder, and evidence helper. Valid text submission SHALL follow the text-conversation requirements. Upload SHALL remain disabled with an upload-only notice until its owning change enables it. The composer SHALL remain visible while messages scroll independently.
 
 #### Scenario: Edit a local draft
 
-- **WHEN** a visitor types in the composer and presses Enter
-- **THEN** the entered draft remains editable and no message submission, upload, or answer generation occurs.
+- **WHEN** a visitor edits and submits valid text through a supported gesture
+- **THEN** text submission follows the current text-conversation lifecycle instead of the earlier disabled-send behavior
+- **AND** the input retains the placeholder `聊聊唐卡，或上传一张图片…` and helper `回答会区分数据库依据与通用知识。`.
 
 #### Scenario: Inspect unavailable actions
 
-- **WHEN** the visitor views the composer in this presentation increment
-- **THEN** the `发送消息` and `上传图片` controls are disabled
-- **AND** the page displays `当前为界面演示，发送和上传功能暂未开放。` as their explanation.
+- **WHEN** text submission is available but image upload is not implemented
+- **THEN** the `上传图片` control remains disabled with `图片上传功能暂未开放。`
+- **AND** the obsolete notice claiming that sending is unavailable is absent.
+
+#### Scenario: Disable sending when appropriate
+
+- **WHEN** the draft is blank or one request is pending
+- **THEN** send is disabled while the input remains editable
+- **AND** the corresponding validation or pending state creates no duplicate message.
 
 ### Requirement: Source and copy action placeholders
 

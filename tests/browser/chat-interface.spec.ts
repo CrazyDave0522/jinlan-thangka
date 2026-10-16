@@ -63,7 +63,7 @@ for (const viewport of viewports) {
     expect(await field.evaluate((element) => getComputedStyle(element.parentElement!).boxShadow)).not.toBe("none");
     await field.fill("草稿");
     await field.press("End");
-    await field.press("Enter");
+    await field.press("Shift+Enter");
     await expect(field).toHaveValue("草稿\n");
     await field.press("Tab");
     await verifyLayout(page);

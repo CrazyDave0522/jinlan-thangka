@@ -29,6 +29,14 @@ Routine tests must not call live Supabase, Storage, or DeepSeek. Mock service bo
 
 Mocked AI responses can check how the application handles citations, uncertainty, and errors. They do not establish that a real model identifies Thangka artworks accurately or avoids fabrication. Evaluate real model behavior separately with agreed sample data when it becomes available.
 
+## Archive Retrieval Tests
+
+`npm test -- src/lib/retrieval` covers strict queries, the real Supabase HTTP client over mocked fetch, finite evidence expansion, safe errors, raw response/cumulative/result budgets, graph caps and cancellation/late results. Server modules remain marked `server-only`; tests mock only that build-time guard and transport, not SQL behavior. Shared synthetic row fixtures live in `tests/fixtures/archive.ts`.
+
+`sql.test.ts` uses the development-only `@electric-sql/pglite` dependency to run the actual reference schema and incremental search/access SQL against disposable in-memory PostgreSQL, including exact/substring rank tiers, arrays, multilingual names, literal special characters, filters/caps, reference descriptor types/nullability, anon writes denied and invoker RLS. It never connects to Supabase and requires no Docker or real dataset. It does not establish production collation, deployed grants/schema exposure or Data API behavior. These checks are part of `npm run check`.
+
+The optional `node --env-file=.env.local scripts/verify-archive.mjs` command is a separately invoked read-only live smoke check, never a routine unit-test dependency. Follow [retrieval-setup.md](retrieval-setup.md) and record live setup/type/access gaps independently. Retrieval adds no screen or public route; existing Chromium tests cover product regressions, while later integration must test browser consumption of retrieved evidence.
+
 ## Browser tests
 
 Install the browser once with `npx playwright install chromium`, then run `npm run test:e2e`. If browser downloads use a custom location, set the same `PLAYWRIGHT_BROWSERS_PATH` for installation and test execution. The command builds and starts the production Next.js app on `127.0.0.1:3100` and an isolated Vite component harness on `127.0.0.1:3101`; both ports must be available. It does not stop or reuse the developer's existing server. Supabase variables are explicitly blank for the test app, so routine checks do not use real services.

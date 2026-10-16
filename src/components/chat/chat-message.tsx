@@ -12,6 +12,7 @@ export type ChatMessage =
       role: "user";
       text: string;
       image?: { src: string; alt: string; width: number; height: number };
+      images?: { src: string; alt: string; width: number; height: number }[];
     }
   | {
       id: string;
@@ -26,7 +27,7 @@ function Attachment({ image }: { image: NonNullable<Extract<ChatMessage, { role:
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   if (failedSrc === image.src) {
-    return <p className="rounded-lg border p-4 text-sm text-muted-foreground" role="status">图片暂时无法显示</p>;
+    return <p className="rounded-lg border p-4 text-sm text-muted-foreground" role="status">{image.alt}：图片暂时无法显示</p>;
   }
 
   return (
@@ -49,7 +50,10 @@ export function Message({ message, footer }: { message: ChatMessage; footer?: Re
         <div className="flex max-w-[90%] min-w-0 flex-col gap-3 rounded-xl bg-muted p-4 sm:max-w-[75%]">
           <span className="sr-only">你</span>
           {message.image && <Attachment image={message.image} />}
-          {message.text && <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{message.text}</p>}
+          {Boolean(message.images?.length) && <ol aria-label="本条消息的图片" className="grid grid-cols-2 gap-2">
+            {message.images?.map((image, index) => <li key={image.src} className="min-w-0"><Attachment image={image} /><p className="mt-1 text-xs text-muted-foreground">图片 {index + 1}</p></li>)}
+          </ol>}
+          {message.text && <p className="whitespace-pre-wrap wrap-anywhere">{message.text}</p>}
         </div>
         {footer}
       </li>
@@ -65,7 +69,7 @@ export function Message({ message, footer }: { message: ChatMessage; footer?: Re
       <div className="min-w-0 flex-1 space-y-2">
         <p className="text-sm font-medium">雪域金澜</p>
         <Card>
-          <CardContent className="space-y-5 text-base leading-7 [overflow-wrap:anywhere]">
+          <CardContent className="space-y-5 text-base leading-7 wrap-anywhere">
             {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
             {message.evidence && <section aria-label="数据库依据"><h2 className="font-semibold">数据库依据</h2><p className="whitespace-pre-wrap">{message.evidence}</p></section>}
             {message.generalKnowledge && <section aria-label="通用知识补充"><h2 className="font-semibold">通用知识补充</h2><p className="whitespace-pre-wrap">{message.generalKnowledge}</p></section>}

@@ -161,7 +161,7 @@ test("completion follows the bottom but preserves older reading and input focus"
 
 test("real endpoint rejects invalid bodies with no-store", async ({ request }) => {
   for (const data of ["{invalid", { turnId: "q", messages: [{ id: "q", role: "system", text: "invalid" }] }]) {
-    const response = await request.post(`${home}/api/chat`, { data });
+    const response = await request.post(`${home}/api/chat`, { data, headers: { "Content-Type": "application/json" } });
     expect(response.status()).toBe(400);
     expect(response.headers()["cache-control"]).toContain("no-store");
     expect(await response.json()).toEqual({ error: { code: "invalid_request" } });

@@ -1,9 +1,10 @@
 import type { ComponentProps, ReactNode, Ref } from "react";
 import Image from "next/image";
-import { ArrowUp, ImagePlus } from "lucide-react";
+import { ArrowUp, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Message, type ChatMessage } from "./chat-message";
+import type { LocalImage } from "@/lib/chat/image-policy";
 import "./chat-interface.css";
 
 const copyrightYear = new Date().getFullYear();
@@ -16,6 +17,11 @@ type Composer = {
   onCompositionStart: () => void;
   onCompositionEnd: () => void;
   pending: boolean;
+  images: LocalImage[];
+  preparing: boolean;
+  onFiles: (files: File[]) => void;
+  onRemove: (id: string) => void;
+  error: string;
 };
 
 export function ChatInterface({ messages = [], composer, regionRef, onScroll, messageFooter }: {
@@ -49,14 +55,24 @@ export function ChatInterface({ messages = [], composer, regionRef, onScroll, me
         </div>
         <section aria-label="消息输入" className="chat-composer">
           <div className="rounded-xl border bg-background p-2 focus-within:ring-2 focus-within:ring-ring/50 sm:p-3">
-            <Textarea value={composer?.draft} onChange={composer ? (event) => composer.onChange(event.target.value) : undefined} onKeyDown={composer?.onKeyDown} onCompositionStart={composer?.onCompositionStart} onCompositionEnd={composer?.onCompositionEnd} aria-label="消息内容" aria-describedby="composer-helper composer-notice" placeholder="聊聊唐卡，或上传一张图片…" className="max-h-32 min-h-12 resize-none overflow-y-auto border-0 shadow-none focus-visible:ring-0 md:text-base" />
+            {Boolean(composer?.images.length) && <ol aria-label="待发送图片" className="chat-preview-list mb-2 grid max-h-40 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-4">
+              {composer?.images.map((image, index) => <li key={image.id} className="relative min-w-0 rounded-lg border p-2">
+                <Image unoptimized src={image.url} width={image.width} height={image.height} alt={`待发送图片 ${index + 1}`} className="h-20 w-full rounded object-contain" />
+                <div className="mt-1 flex items-center justify-between gap-1"><span className="text-xs">图片 {index + 1}</span><Button type="button" size="icon-sm" variant="ghost" aria-label={`移除图片 ${index + 1}`} onClick={() => composer.onRemove(image.id)}><X className="size-4" aria-hidden="true" /></Button></div>
+              </li>)}
+            </ol>}
+            <Textarea value={composer?.draft} onChange={composer ? (event) => composer.onChange(event.target.value) : undefined} onKeyDown={composer?.onKeyDown} onCompositionStart={composer?.onCompositionStart} onCompositionEnd={composer?.onCompositionEnd} aria-label="消息内容" aria-describedby="composer-helper composer-image-help" placeholder="聊聊唐卡，或上传一张图片…" className="max-h-32 min-h-12 resize-none overflow-y-auto border-0 shadow-none focus-visible:ring-0 md:text-base" />
             <div className="mt-1 flex items-center justify-between">
-              <Button disabled type="button" variant="ghost" size="icon-lg" aria-label="上传图片" aria-describedby="composer-notice"><ImagePlus className="size-5" aria-hidden="true" /></Button>
-              <Button disabled={!composer || composer.pending || !composer.draft.trim()} onClick={composer?.onSubmit} type="button" size="icon-lg" aria-label="发送消息"><ArrowUp className="size-5" aria-hidden="true" /></Button>
+              <Button disabled={!composer || composer.preparing} type="button" variant="ghost" size="icon-lg" aria-label="上传图片" aria-describedby="composer-image-help" onClick={(event) => event.currentTarget.parentElement?.querySelector("input")?.click()}><ImagePlus className="size-5" aria-hidden="true" /></Button>
+              <input type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple hidden aria-label="选择图片" disabled={!composer || composer.preparing} onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; composer?.onFiles(files); }} />
+              <Button disabled={!composer || composer.pending || composer.preparing || (!composer.draft.trim() && !composer.images.length)} onClick={composer?.onSubmit} type="button" size="icon-lg" aria-label="发送消息"><ArrowUp className="size-5" aria-hidden="true" /></Button>
             </div>
           </div>
           <p id="composer-helper" className="mt-2 text-center text-xs leading-5 text-muted-foreground">回答会区分数据库依据与通用知识。</p>
-          <p id="composer-notice" className="text-center text-xs leading-5 text-muted-foreground">图片上传功能暂未开放。</p>
+          <p id="composer-image-help" className="text-center text-xs leading-5 text-muted-foreground">最多 4 张 JPG/JPEG、PNG，单张不超过 5 MB。</p>
+          {Boolean(composer?.images.length || composer?.preparing) && <p className="text-center text-xs leading-5 text-muted-foreground">图片将适度缩放或压缩后发送，仅在当前页面保留。</p>}
+          {composer?.preparing && <p role="status" className="text-center text-sm text-muted-foreground">正在处理图片…</p>}
+          {composer?.error && <p role="alert" className="mt-1 text-sm text-destructive wrap-anywhere">{composer.error}</p>}
         </section>
       </main>
       <footer className="chat-footer">

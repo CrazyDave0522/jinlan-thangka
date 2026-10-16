@@ -70,7 +70,7 @@ describe("conversation presentation", () => {
     expect(field).toHaveValue("介绍唐卡\n继续编辑");
     expect(screen.getByRole("button", { name: "发送消息" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "上传图片" })).toBeDisabled();
-    expect(field).toHaveAccessibleDescription(expect.stringContaining("图片上传功能暂未开放"));
+    expect(field).toHaveAccessibleDescription(expect.stringContaining("最多 4 张 JPG/JPEG、PNG"));
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });

@@ -35,7 +35,7 @@ The system SHALL open the home page with an empty conversation and welcome guida
 
 ### Requirement: Message presentation
 
-The system SHALL display supplied user text and optional image attachments on the right, and assistant content with the `雪域金澜` identity on the left. Supplied database evidence and general-knowledge supplements SHALL appear in distinguishable sections. Presentation SHALL NOT generate factual claims or require external-service queries.
+The system SHALL display supplied user text and up to four ordered JPEG/PNG image attachments on the right, and assistant content with the `雪域金澜` identity on the left. Supplied database evidence and general-knowledge supplements SHALL appear in distinguishable sections. Prepared attachment previews SHALL represent the transmitted images with stable turn-scoped labels and proportional grids. Presentation SHALL NOT generate factual claims or require external-service queries.
 
 #### Scenario: Display a supplied exchange
 
@@ -48,9 +48,15 @@ The system SHALL display supplied user text and optional image attachments on th
 - **WHEN** a supplied message has no image or an answer has no content for an optional section or source area
 - **THEN** the page omits that absent content without rendering broken image elements, empty headings, invented sources, or an empty source control.
 
+#### Scenario: Display multiple image-only attachments
+
+- **WHEN** a user turn has several images without text
+- **THEN** its ordered labelled images remain visible in one user turn, wrapping within mainstream mobile/desktop content bounds
+- **AND** no empty question text or invented assistant answer is displayed.
+
 ### Requirement: Conversation composer
 
-The system SHALL provide an editable `消息内容` field using the established visual system, placeholder, and evidence helper. Valid text submission SHALL follow the text-conversation requirements. Upload SHALL remain disabled with an upload-only notice until its owning change enables it. The composer SHALL remain visible while messages scroll independently.
+The system SHALL provide an editable `消息内容` field with the established visual system, placeholder and evidence helper. Submission SHALL follow text-conversation and image-upload. The composer SHALL support a JPG/JPEG/PNG multi-file picker, up to four ordered previews, individual removal and contextual processing/lifetime guidance. It SHALL remain visible while messages scroll independently.
 
 #### Scenario: Edit a local draft
 
@@ -60,15 +66,27 @@ The system SHALL provide an editable `消息内容` field using the established 
 
 #### Scenario: Inspect unavailable actions
 
-- **WHEN** text submission is available but image upload is not implemented
-- **THEN** the `上传图片` control remains disabled with `图片上传功能暂未开放。`
-- **AND** the obsolete notice claiming that sending is unavailable is absent.
+- **WHEN** image selection is available in the conversation composer
+- **THEN** the `上传图片` control opens the supported picker unless current draft preparation temporarily locks selection
+- **AND** obsolete sending/upload-disabled notices are absent, contextual image processing/lifetime guidance appears with attachments, and source/copy actions remain unavailable.
 
 #### Scenario: Disable sending when appropriate
 
-- **WHEN** the draft is blank or one request is pending
-- **THEN** send is disabled while the input remains editable
+- **WHEN** the draft has neither usable text nor a prepared image, image preparation is active, or one request is pending
+- **THEN** send is disabled while text remains editable and next-image draft editing is allowed during an active POST
 - **AND** the corresponding validation or pending state creates no duplicate message.
+
+#### Scenario: Prepare and edit image drafts
+
+- **WHEN** the visitor selects valid images or edits a next-image draft while a POST is pending
+- **THEN** preparation feedback and accessible labelled remove controls preserve current draft text and image order
+- **AND** pending request completion cannot replace the newer draft, and draft preparation cannot reintroduce removed images.
+
+#### Scenario: Keep a four-image composer usable
+
+- **WHEN** four previews are displayed at a mainstream mobile or reduced-height viewport
+- **THEN** the preview panel is limited to 40 shared spacing units with internal vertical scrolling
+- **AND** the message region, editable text, send/image controls and centered mobile footer remain reachable without page overflow.
 
 ### Requirement: Source and copy action placeholders
 
@@ -115,9 +133,9 @@ The system SHALL follow the project responsive baseline and browser matrix with 
 
 ### Requirement: Attachment image fallback
 
-The system SHALL preserve the accompanying message text when a supplied image fails to load, and SHALL display a readable Chinese fallback. Image presentation SHALL be verified using synthetic test assets without introducing artwork or image placeholders on the empty home page.
+The system SHALL preserve any accompanying message text when a supplied image fails to load, and SHALL display a readable Chinese fallback including the affected image label, even for image-only turns. Image presentation SHALL be verified using synthetic test assets without introducing artwork or image placeholders on the empty home page.
 
 #### Scenario: Image fails to load
 
 - **WHEN** a supplied message image cannot be loaded
-- **THEN** the message displays a readable unavailable-image fallback and retains the accompanying question.
+- **THEN** the message displays a readable unavailable-image fallback and retains any accompanying question and other valid images.

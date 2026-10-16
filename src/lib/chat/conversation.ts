@@ -1,10 +1,12 @@
-export type TextMessage = { id: string; role: "user" | "assistant"; text: string };
-export type ChatRequest = { turnId: string; messages: TextMessage[] };
+import { IMAGE_LIMITS, type LocalImage, type WireImage } from "./image-policy";
+export type TextMessage<I = WireImage> = { id: string; role: "user" | "assistant"; text: string; images?: I[] };
+export type ChatRequest<I = WireImage> = { turnId: string; messages: TextMessage<I>[] };
 export type Turn = {
-  user: TextMessage;
-  request: ChatRequest;
+  user: TextMessage<LocalImage>;
+  request: ChatRequest<LocalImage>;
   status: "pending" | "unavailable" | "failed" | "completed";
-  answer?: TextMessage;
+  answer?: TextMessage<LocalImage>;
+  failure?: "invalid_image" | "request_too_large";
 };
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -13,19 +15,28 @@ function record(value: unknown): value is Record<string, unknown> {
 function nonblank(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
+function isWireImage(value: unknown): value is WireImage {
+  return record(value) && nonblank(value.id) && (value.mimeType === "image/jpeg" || value.mimeType === "image/png") &&
+    Number.isInteger(value.width) && Number.isInteger(value.height) && (value.width as number) > 0 && (value.height as number) > 0 && typeof value.data === "string";
+}
 export function isTextMessage(value: unknown): value is TextMessage {
-  return record(value) && nonblank(value.id) && nonblank(value.text) &&
-    (value.role === "user" || value.role === "assistant");
+  if (!record(value) || !nonblank(value.id) || typeof value.text !== "string") return false;
+  if (value.role === "assistant") return nonblank(value.text) && value.images === undefined;
+  if (value.role !== "user") return false;
+  if (value.images !== undefined && (!Array.isArray(value.images) || !value.images.length || value.images.length > IMAGE_LIMITS.count || !value.images.every(isWireImage))) return false;
+  return nonblank(value.text) || (Array.isArray(value.images) && value.images.length > 0);
 }
 export function isChatRequest(value: unknown): value is ChatRequest {
   if (!record(value) || !nonblank(value.turnId) || !Array.isArray(value.messages) || !value.messages.length) return false;
   const messages: unknown[] = value.messages;
   if (!messages.every(isTextMessage)) return false;
   const last = messages[messages.length - 1];
+  const imageIds = messages.flatMap((message) => message.images?.map((image) => image.id) ?? []);
+  if (new Set(imageIds).size !== imageIds.length) return false;
   return new Set(messages.map((message) => message.id)).size === messages.length &&
     last.role === "user" && last.id === value.turnId;
 }
-export function createRequest(turns: Turn[], user: TextMessage): ChatRequest {
+export function createRequest(turns: Turn[], user: TextMessage<LocalImage>): ChatRequest<LocalImage> {
   return {
     turnId: user.id,
     messages: [...turns.flatMap((turn) => {
@@ -35,13 +46,13 @@ export function createRequest(turns: Turn[], user: TextMessage): ChatRequest {
     }), user].map((message) => ({ ...message })),
   };
 }
-export function parseChatResponse(status: number, body: unknown, request: ChatRequest, reservedIds: string[]) {
+export function parseChatResponse(status: number, body: unknown, request: Pick<ChatRequest, "turnId">, reservedIds: string[]) {
   if (status === 503 && record(body) && record(body.error) && body.error.code === "generation_unavailable") {
     return { status: "unavailable" } as const;
   }
   if (status === 200 && record(body) && body.turnId === request.turnId &&
     isTextMessage(body.message) && body.message.role === "assistant" && !reservedIds.includes(body.message.id)) {
-    return { status: "completed", answer: { ...body.message } } as const;
+    return { status: "completed", answer: { id: body.message.id, role: "assistant", text: body.message.text } } as const;
   }
   throw new Error("Invalid chat response");
 }

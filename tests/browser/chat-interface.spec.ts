@@ -52,7 +52,7 @@ for (const viewport of viewports) {
     await expect(page.getByRole("img")).toHaveCount(1);
     await expect.poll(() => page.getByRole("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     await expect(page.getByRole("button", { name: "发送消息" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "上传图片" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "上传图片" })).toBeEnabled();
     const field = page.getByRole("textbox", { name: "消息内容" });
     await page.keyboard.press("Tab");
     const conversationRegion = page.getByRole("region", { name: "对话内容" });
@@ -107,7 +107,7 @@ test("components resize through intermediate widths and reduced height", async (
 
 test("failed image preserves its question", async ({ page }) => {
   await page.goto("http://127.0.0.1:3101/?mode=broken");
-  await expect(page.getByRole("status")).toHaveText("图片暂时无法显示");
+  await expect(page.getByRole("status")).toContainText("图片暂时无法显示");
   await expect(page.getByText("图片失败后仍保留的问题")).toBeVisible();
 });
 

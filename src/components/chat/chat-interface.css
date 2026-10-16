@@ -103,6 +103,7 @@
 }
 
 @media (max-height: 500px) {
+  .chat-preview-list { max-height: calc(var(--spacing) * 20); }
   .chat-brand { width: 132px; }
   .chat-welcome { padding-block: calc(var(--spacing) * 3); }
   .chat-composer { padding-block: var(--spacing); }

@@ -25,6 +25,7 @@ The following versions and ranges are declared in `package.json`:
 - React and React DOM 19.3.0.
 - TypeScript 5.x with strict checking.
 - Tailwind CSS 4.x, integrated through `@tailwindcss/turbopack`.
+- shadcn/ui with its `base-nova` preset (Base UI primitives), neutral theme, and Lucide React icons.
 - Supabase JavaScript client `^2.117.3` and SSR helpers `^0.12.7`.
 - PostgreSQL schema reference targeting version 13+; the deployed database version is unverified.
 - ESLint 9.x with Next.js Core Web Vitals and TypeScript configurations.
@@ -39,11 +40,13 @@ The following versions and ranges are declared in `package.json`:
 - Follow the existing TypeScript style: double quotes, semicolons, and two-space indentation. No separate formatter configuration is currently present.
 - Use the `@/*` alias for imports rooted in `src`; existing Supabase helpers also use relative imports within their directory.
 - Preserve database identifiers in snake_case, as defined by the supplied SQL.
+- Reuse shadcn/ui components from `src/components/ui` with their default variants and semantic theme colors. Use Lucide for icons and keep the existing Geist fonts. Avoid mixing UI libraries or introducing page-specific color palettes.
 - Do not introduce new naming or formatting rules as established policy without agreement.
 
 ### Architecture Patterns
 
-- `src/app/` contains routes, layouts, and global styles. The home page and metadata still contain starter content.
+- `src/app/` contains routes, layouts, and global styles. The home page and metadata still contain starter content; the home page uses shared button styles and a Lucide icon.
+- `components.json` configures shadcn/ui. Theme tokens live in `src/app/globals.css`; the initial components are Button, Input, Textarea, and Card. Light and dark tokens are defined, but no theme switcher is configured. Add components with `npx shadcn add <component>` when required.
 - `src/lib/supabase/client.ts` creates the browser client. `src/lib/supabase/server.ts` creates a request-specific server client and is marked `server-only`.
 - `src/lib/supabase/config.ts` reads the public project URL and publishable key and fails explicitly when they are missing.
 - `src/proxy.ts` refreshes authentication cookies and preserves response cache headers. It does not protect routes or assign application roles.

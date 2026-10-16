@@ -24,6 +24,12 @@ You can start editing the page by modifying [src/app/page.tsx](./src/app/page.ts
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## UI components
+
+The UI uses shadcn/ui (`base-nova`, neutral theme), Lucide icons, and the existing Geist fonts. Base components are in `src/components/ui`; shared theme tokens are in `src/app/globals.css`. Reuse the default components and variants to keep the interface consistent. See `components.json` for CLI configuration.
+
+Add components as needed with `npx shadcn add <component>`. Import icons from `lucide-react`. Light and dark theme tokens are available; no theme switcher is configured.
+
 ## Testing
 
 Run `npm run check` after completing each requirement. It runs ESLint, TypeScript checking, and the full Vitest suite. Add or update tests for the requirement before running the checks.

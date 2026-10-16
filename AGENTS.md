@@ -31,6 +31,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Use English for all project content, including documentation, source comments, SQL comments, metadata descriptions, and interface text.
 
+## UI conventions
+
+- Use shadcn/ui with the `base-nova` preset, the neutral theme, and Lucide icons. Configuration lives in `components.json` and theme tokens in `src/app/globals.css`.
+- Reuse components from `src/components/ui` and their default variants before introducing custom styles. Add components with `npx shadcn add <component>` as needed.
+- Use semantic theme colors, the existing Geist fonts, and consistent Lucide sizing. Keep shared default styles intact unless a requirement calls for a change; avoid mixing component or icon libraries.
+- This setup includes light and dark tokens but no theme switcher. Add product behavior through the normal requirements workflow.
+
 ## Testing workflow
 
 - Use Vitest and React Testing Library for business logic and component tests. See `docs/testing.md`.

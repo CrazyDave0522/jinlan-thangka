@@ -1,0 +1,110 @@
+@reference "../../app/globals.css";
+
+.chat-shell {
+  display: flex;
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.chat-brand {
+  position: relative;
+  width: 190px;
+  aspect-ratio: 3.3;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-brandImage {
+  position: absolute;
+  top: -55%;
+  left: -12.5%;
+  width: 125%;
+  max-width: none;
+  height: auto;
+}
+
+.chat-main {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.chat-messages {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable both-edges;
+}
+
+.chat-messages:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.chat-welcome {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 6);
+  text-align: center;
+}
+
+.chat-conversation,
+.chat-composer {
+  width: 100%;
+  max-width: 968px;
+  margin-inline: auto;
+  padding-inline: calc(var(--spacing) * 6);
+}
+
+.chat-conversation {
+  padding-block: calc(var(--spacing) * 6);
+}
+
+.chat-composer {
+  flex-shrink: 0;
+  padding-block: calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+}
+
+.chat-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacing) calc(var(--spacing) * 6);
+  border-top: 1px solid var(--border);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 12) max(calc(var(--spacing) * 3), env(safe-area-inset-bottom));
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  line-height: calc(var(--spacing) * 5);
+}
+
+@media (width < theme(--breakpoint-sm)) {
+  .chat-brand { width: 166px; }
+  .chat-conversation, .chat-composer { padding-inline: calc(var(--spacing) * 4); }
+  .chat-footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-inline: calc(var(--spacing) * 4);
+    padding-top: calc(var(--spacing) * 2);
+    padding-bottom: max(calc(var(--spacing) * 2), env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-height: 500px) {
+  .chat-brand { width: 132px; }
+  .chat-welcome { padding-block: calc(var(--spacing) * 3); }
+  .chat-composer { padding-block: var(--spacing); }
+  .chat-footer { padding-top: var(--spacing); padding-bottom: max(var(--spacing), env(safe-area-inset-bottom)); }
+}

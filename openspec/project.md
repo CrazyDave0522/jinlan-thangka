@@ -14,7 +14,7 @@
 - No login, user accounts, application roles, or permission-management interface for this phase.
 - Supabase hosts the existing database tables. Supabase Storage is the planned image storage service, and Vercel is the confirmed deployment platform.
 
-These are confirmed requirements, not completed features. The repository currently contains a Next.js starter application, Supabase client and session-refresh setup, and a documented database schema. The chat interface, image-upload flow, AI integration, and database retrieval flow are not implemented. An administration interface, Excel importer, and commercial account workflows are outside the confirmed demo scope.
+The repository contains the initial conversation presentation layer, Supabase client and session-refresh setup, and a documented database schema. The home page opens with empty welcome guidance and supports local draft editing; message components accept supplied data for tests and future integration. Submission, uploads, working source/copy actions, AI integration, and database retrieval are not implemented. The interface change is implemented and verified locally, and was archived at the owner's explicit request on 2026-10-16 before deployment. Its current capability is in [specs/chat-interface/spec.md](specs/chat-interface/spec.md); deployment remains outstanding. An administration interface, Excel importer, and commercial account workflows are outside the confirmed demo scope.
 
 ## Tech Stack
 
@@ -43,9 +43,29 @@ The following versions and ranges are declared in `package.json`:
 - Reuse shadcn/ui components from `src/components/ui` with their default variants and semantic theme colors. Use Lucide for icons and keep the existing Geist fonts. Avoid mixing UI libraries or introducing page-specific color palettes.
 - Do not introduce new naming or formatting rules as established policy without agreement.
 
+### Visual System and Token Reuse
+
+All UI work must consistently apply the established shadcn/ui `base-nova`, neutral theme, Geist fonts, and Lucide visual system. The repository-wide operating rules are in [AGENTS.md](../AGENTS.md#ui-conventions); inspect the configured theme and shared components before implementation, and review adherence before completing UI changes.
+
+Prefer shared component variants and theme utilities for common spacing, typography, radii, colors, and control/icon sizing. Reuse both explicit `globals.css` tokens and its imported Tailwind scales. Custom CSS must reference equivalent theme variables rather than duplicate ordinary visual values, and standard breakpoints must follow the shared theme. Token reuse should preserve the intended presentation and responsive behavior.
+
+Purpose-specific layout values, such as content-width caps, logo dimensions/cropping, aspect ratios, percentage widths, safe-area handling, and short-height thresholds, can remain local when appropriate. Do not turn each isolated layout value into a global token or alter shared defaults for a single screen. This principle applies throughout the eight-change roadmap and future UI requirements.
+
+### Responsive Design
+
+Responsive behavior is a confirmed project-wide acceptance requirement for every page and UI change. Target more than 80% of ordinary desktop use cases and more than 80% of ordinary mobile use cases separately. Use public size-distribution statistics to select the initial baseline; the owner does not need to supply device data. September 2026 Statcounter worldwide and China desktop/mobile findings, checked on 2026-10-16, are recorded with sources in [docs/testing.md](../docs/testing.md#public-size-distribution-reference). These sampled screen-size shares inform test priorities but do not establish the project's actual audience or verify 80% viewport coverage. Do not introduce analytics merely to satisfy this convention.
+
+Use CSS viewport pixels, not physical display resolution. The initial engineering baseline is mobile portrait widths of 360–430 pixels, desktop/laptop widths of 1024–2560 pixels with ordinary window heights of 720 pixels or more, and continuous adaptation through the intervening tablet and resized-window widths. Use a compact mainstream acceptance matrix rather than testing every reported resolution. Check ordinary viewport-height changes and mobile landscape where relevant; 320-pixel widths are outside mandatory acceptance. These ranges guide acceptance without proving the percentage target or requiring bespoke designs for extreme widths, ultrawide aspect ratios, or unusually tiny windows.
+
+Layouts must adapt between representative sizes without page-level horizontal scrolling, clipped content, overlapping controls, or inaccessible primary actions. Keep content widths and typography readable on large screens rather than stretching the reference proportionally. Handle long content, proportional images, touch interaction, orientation changes, mobile viewport changes, and virtual keyboards where relevant.
+
+The owner explicitly prioritizes mainstream coverage and reasonable delivery cost over exhaustive compatibility. Niche dimensions, extreme aspect ratios, unusually tiny windows, and bespoke adaptations for uncommon devices are outside required acceptance. Public statistics guide representative selection; appearing in a statistics table does not automatically make a size a mandatory test.
+
+Every UI proposal must apply this baseline to its own states and interactions. Browser verification follows the representative matrix in [docs/testing.md](../docs/testing.md), including intermediate widths and breakpoint transitions. Record tested sizes and limitations; jsdom and passing unit tests do not establish responsive layout correctness. Revisit the baseline if actual audience evidence becomes available.
+
 ### Architecture Patterns
 
-- `src/app/` contains routes, layouts, and global styles. The home page and metadata still contain starter content; the home page uses shared button styles and a Lucide icon.
+- `src/app/` contains routes, layouts, and global styles. The home page renders the empty conversation shell from `src/components/chat`, with branded Chinese metadata. Message components support supplied text/images and separated evidence/general-knowledge content; no fixture messages are preloaded. Prefixed conversation styles supplement shared UI defaults; the current Turbopack CSS loader configuration does not preserve CSS Module mappings for this use case.
 - `components.json` configures shadcn/ui. Theme tokens live in `src/app/globals.css`; the initial components are Button, Input, Textarea, and Card. Light and dark tokens are defined, but no theme switcher is configured. Add components with `npx shadcn add <component>` when required.
 - `src/lib/supabase/client.ts` creates the browser client. `src/lib/supabase/server.ts` creates a request-specific server client and is marked `server-only`.
 - `src/lib/supabase/config.ts` reads the public project URL and publishable key and fails explicitly when they are missing.
@@ -64,9 +84,9 @@ Use **Vitest with React Testing Library** for unit tests, synchronous React comp
 
 For every implemented requirement, add or update behavior tests for its acceptance criteria and relevant failure paths, then run `npm run check` (lint, TypeScript checks, and the full Vitest suite). Fix failures before reporting completion; disclose any checks that could not run. Use `npm test` for a single suite run and `npm run test:watch` during development. Run `npm run build` for changes that affect application integration or build behavior.
 
-Routine tests use explicit fixtures and mocked external boundaries, not real Supabase data or paid DeepSeek calls. The existing tests validate configuration errors and render the starter home page; they do not validate the planned AI features. Update the home-page smoke test when replacing the starter screen.
+Routine tests use explicit fixtures and mocked external boundaries, not real Supabase data or paid DeepSeek calls. The unit/component tests validate configuration errors and conversation presentation; they do not validate the planned AI features. The home-page test covers the empty conversation shell and draft input.
 
-Vitest does not directly support async Server Components or replace real browser end-to-end tests of Next.js routing, cookies, uploads, and streaming. Add browser coverage when implemented requirements depend on those flows. No browser test framework, automated CI workflow, or coverage threshold is configured yet.
+Vitest does not directly support async Server Components or replace real browser end-to-end tests of Next.js routing, cookies, uploads, and streaming. Add browser coverage when implemented requirements depend on those flows. Playwright with Chromium checks the production home page and isolated message components across the mainstream viewport matrix; no automated CI workflow or coverage threshold is configured yet. The isolated harness replaces Next.js image optimization with native images and does not establish full future upload or AI request lifecycles.
 
 Demo acceptance examples should cover text questions, matching a known database artwork from an image, subject/deity/style explanations, ambiguous or unmatched images, insufficient database evidence, and separation of general knowledge from database-supported claims. Citation checks must verify that referenced records and sources exist and actually support the associated claims. The owner confirms that there is currently no project data. Sample records, images, and concrete acceptance questions are explicitly deferred until data is available.
 

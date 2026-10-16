@@ -1,10 +1,10 @@
 # Demo Implementation Roadmap
 
-These eight change proposals record the agreed implementation breakdown. They are scope drafts, not implementation approvals or completed capabilities. Detailed behavior, failure scenarios, technical decisions, and implementation tasks will be written when each change is selected.
+These eight change proposals record the agreed implementation breakdown. Item 1 has been refined, approved, implemented locally, verified, and archived at the owner's request on 2026-10-16; it is not yet deployed. Its current capability is recorded in [specs/chat-interface/spec.md](specs/chat-interface/spec.md). Items 2–8 remain scope drafts. Detailed behavior, failure scenarios, technical decisions, and implementation tasks are written when each change is selected.
 
 | Order | Change                                                                   | Scope                                           |
 | ----- | ------------------------------------------------------------------------ | ----------------------------------------------- |
-| 1     | [add-chat-interface](changes/add-chat-interface/proposal.md)             | Conversation interface                          |
+| 1     | [add-chat-interface](changes/archive/2026-10-16-add-chat-interface/proposal.md)             | Conversation interface                          |
 | 2     | [add-text-conversation](changes/add-text-conversation/proposal.md)       | Text messages and conversation context          |
 | 3     | [add-image-upload](changes/add-image-upload/proposal.md)                 | Image upload and message attachments            |
 | 4     | [add-thangka-retrieval](changes/add-thangka-retrieval/proposal.md)       | Thangka database retrieval                      |
@@ -15,7 +15,7 @@ These eight change proposals record the agreed implementation breakdown. They ar
 
 ## Working Sequence
 
-1. Build the interface and conversation interactions (items 1–3), using explicitly labeled fixtures where services are not yet available.
+1. Build the interface and conversation interactions (items 1–3), using synthetic fixtures only in tests or development-only verification where services are not yet available. The product home page opens with empty welcome guidance.
 2. Establish retrieval and grounded text answers (items 4–5), defining record, evidence, and source contracts together.
 3. Add image interpretation and complete source inspection (items 6–7). Source UI may be completed before image interpretation if useful.
 4. Verify and deploy the integrated demo (item 8).
@@ -31,5 +31,7 @@ The order is a delivery guide; each proposal states its actual dependencies. Eac
 - Keep proposed capabilities under `changes/`; only promote them to `specs/` through the normal OpenSpec workflow.
 
 ## Boundaries
+
+Responsive behavior is a shared acceptance requirement across this roadmap, not a ninth change. Each UI change must apply the baseline in [project.md](project.md) and the browser matrix in [docs/testing.md](../docs/testing.md) to its own states and interactions. The release change verifies integrated behavior; it does not defer responsive work until release.
 
 Follow [project.md](project.md) for confirmed scope and deferred decisions. This roadmap does not choose a DeepSeek model, a vector-search architecture, conversation persistence, upload limits, image retention, or new product capabilities. Routine development uses synthetic fixtures and mocked services; real image-identification acceptance needs agreed archive records, images, and sources.

@@ -20,7 +20,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying [src/app/page.tsx](./src/app/page.tsx). The page auto-updates as you edit the file.
+The home page presents the Jinlan Thangka conversation interface with empty welcome guidance. This increment supports local draft editing; sending, uploading, source inspection, and copying are reserved for later requirements. No example conversation is preloaded. The page auto-updates as you edit [src/app/page.tsx](./src/app/page.tsx).
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
@@ -38,6 +38,8 @@ Run `npm run check` after completing each requirement. It runs ESLint, TypeScrip
 - `npm run test:watch`: rerun tests as files change.
 - `npm run typecheck`: check TypeScript without emitting files.
 - `npm run build`: verify the production build when application integration changes.
+- `npx playwright install chromium`: install the browser for browser tests.
+- `npm run test:e2e`: build and test the production home page plus isolated message components across the mainstream viewport matrix (ports 3100 and 3101).
 
 See [the testing guide](./docs/testing.md) for test locations, external-service mocks, and framework limitations.
 

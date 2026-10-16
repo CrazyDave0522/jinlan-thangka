@@ -17,9 +17,9 @@ it("keeps image identities/bytes in snapshots but excludes earlier failed images
   const user = { id: "old", role: "user" as const, text: "", images: [image()] };
   const request = createRequest([], user);
   const current = { id: "next", role: "user" as const, text: "继续" };
-  expect(createRequest([{ user, request, status: "unavailable" }], current).messages[0].images![0].blob).toBe(user.images[0].blob);
+  expect(createRequest([{ user, request, status: "completed", answer: { id: "a", role: "assistant", text: "回答" } }], current).messages[0].images![0].blob).toBe(user.images[0].blob);
   expect(createRequest([{ user, request, status: "failed" }], current).messages).toHaveLength(1);
-  expect(requestLimitNotice(createRequest([{ user, request, status: "unavailable" }], current))).toBe(IMAGE_CONTEXT_NOTICE);
+  expect(requestLimitNotice(createRequest([{ user, request, status: "completed", answer: { id: "a", role: "assistant", text: "回答" } }], current))).toBe(IMAGE_CONTEXT_NOTICE);
   expect(requestLimitNotice(request)).toContain("减少图片");
   expect(requestLimitNotice(createRequest([], current))).toContain("文字");
 });

@@ -84,5 +84,11 @@ export function useImageDraft() {
       if (work.current === controller) { work.current = null; setPreparing(false); }
     }
   }
-  return { images, preparing, error, select, remove, take, isPreparing: () => work.current !== null };
+  function releaseUnreferenced(retained: Set<string>) {
+    const selected = new Set(draft.current.map((image) => image.id));
+    for (const [id, image] of registry.current) if (!retained.has(id) && !selected.has(id)) {
+      URL.revokeObjectURL(image.url); registry.current.delete(id);
+    }
+  }
+  return { images, preparing, error, select, remove, take, releaseUnreferenced, isPreparing: () => work.current !== null };
 }

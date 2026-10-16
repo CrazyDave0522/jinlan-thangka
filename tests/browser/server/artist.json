@@ -1,0 +1,23 @@
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "display_name": "测试画师",
+  "name_bo": null,
+  "name_en": null,
+  "aliases": [],
+  "gender": null,
+  "birth_period_text": null,
+  "death_period_text": null,
+  "region_text": null,
+  "styles": [],
+  "institutions": [],
+  "teachers_text": null,
+  "active_period_text": null,
+  "biography": "这是用于浏览器验证的合成生平。",
+  "official_url": null,
+  "collected_by": null,
+  "collected_on": null,
+  "review_status": "verified",
+  "notes": null,
+  "created_at": "2026-10-16T00:00:00+00:00",
+  "updated_at": "2026-10-16T00:00:00+00:00"
+}

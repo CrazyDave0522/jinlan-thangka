@@ -1,3 +1,4 @@
+import { assistant } from "../fixtures/answer";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import type { ChatRequest } from "../../src/lib/chat/conversation";
 
@@ -24,17 +25,16 @@ for (const viewport of viewports) {
     const response = await firstResponse;
     expect(response.status()).toBe(503);
     expect(response.headers()["cache-control"]).toContain("no-store");
-    await expect(page.getByRole("status")).toHaveText("AI 回复暂未接入，暂时无法回复。");
+    await expect(page.getByRole("status")).toHaveText("AI 服务暂未开启，暂时无法回复。");
     await expect(field(page)).toHaveValue("");
     await expect(page.getByRole("listitem")).toHaveCount(1);
     await expect(page.getByRole("listitem", { name: "雪域金澜的回答" })).toHaveCount(0);
     await submit(page, "后续问题");
-    await expect(page.getByRole("status").last()).toHaveText("AI 回复暂未接入，暂时无法回复。");
+    await expect(page.getByRole("status").last()).toHaveText("AI 服务暂未开启，暂时无法回复。");
     await expect(page.getByRole("status")).toHaveCount(2);
     expect(requests).toHaveLength(2);
-    expect(requests[1].messages.map((message) => message.text)).toEqual(["唐卡\n艺术", "后续问题"]);
-    expect(requests[1].messages[0].id).toBe(requests[0].turnId);
-    expect(requests[1].messages[1].id).toBe(requests[1].turnId);
+    expect(requests[1].messages.map((message) => message.text)).toEqual(["后续问题"]);
+    expect(requests[1].messages[0].id).toBe(requests[1].turnId);
     const metrics = await page.evaluate(() => {
       const composer = document.querySelector(".chat-composer")!.getBoundingClientRect();
       const footer = document.querySelector("footer")!.getBoundingClientRect();
@@ -62,7 +62,7 @@ test("pending draft, duplicate guard, retry snapshot and success context", async
       await new Promise<void>((resolve) => { release = resolve; });
       await route.fulfill({ status: 500, json: { error: { code: "test_failure" } } });
     } else if (requests.length === 2) {
-      await route.fulfill({ json: { turnId: body.turnId, message: { id: "mock-answer", role: "assistant", text: "仅用于浏览器测试的回答" } } });
+      await route.fulfill({ json: { turnId: body.turnId, message: assistant("仅用于浏览器测试的回答") } });
     } else await route.fulfill({ status: 503, json: { error: { code: "generation_unavailable" } } });
   });
   await page.goto(home);
@@ -82,7 +82,7 @@ test("pending draft, duplicate guard, retry snapshot and success context", async
   await expect(field(page)).toHaveValue("正在编辑的新草稿");
   expect(requests[1]).toEqual(requests[0]);
   await page.getByRole("button", { name: "发送消息" }).click();
-  await expect(page.getByRole("status")).toHaveText("AI 回复暂未接入，暂时无法回复。");
+  await expect(page.getByRole("status")).toHaveText("AI 服务暂未开启，暂时无法回复。");
   expect(requests[2].messages.map((message) => message.role)).toEqual(["user", "assistant", "user"]);
 });
 
@@ -120,7 +120,7 @@ test("touch Enter inserts a newline and the send button submits", async ({ brows
   await expect(field(page)).toHaveValue("触屏草稿\n");
   await expect(page.getByRole("list")).toHaveCount(0);
   await page.getByRole("button", { name: "发送消息" }).tap();
-  await expect(page.getByRole("status")).toHaveText("AI 回复暂未接入，暂时无法回复。");
+  await expect(page.getByRole("status")).toHaveText("AI 服务暂未开启，暂时无法回复。");
   await page.screenshot({ path: "test-results/conversation-touch.png" });
   await context.close();
 });
@@ -133,7 +133,7 @@ test("completion follows the bottom but preserves older reading and input focus"
     count++;
     if (count === 4) { held = route; return; }
     const body = route.request().postDataJSON() as ChatRequest;
-    await route.fulfill({ json: { turnId: body.turnId, message: { id: `answer-${count}`, role: "assistant", text: "浏览器测试长回答。\n".repeat(35) } } });
+    await route.fulfill({ json: { turnId: body.turnId, message: assistant("浏览器测试长回答。\n".repeat(35), `aaaaaaaa-aaaa-4aaa-8aaa-${String(count).padStart(12,"0")}`) } });
   });
   await page.goto(home);
   const region = page.getByRole("region", { name: "对话内容" });
@@ -150,7 +150,7 @@ test("completion follows the bottom but preserves older reading and input focus"
   const before = await region.evaluate((element) => element.scrollTop);
   const composerBefore = await field(page).boundingBox();
   const body = held!.request().postDataJSON() as ChatRequest;
-  await held!.fulfill({ json: { turnId: body.turnId, message: { id: "last-answer", role: "assistant", text: "追加的测试长回答。\n".repeat(40) } } });
+  await held!.fulfill({ json: { turnId: body.turnId, message: assistant("追加的测试长回答。\n".repeat(40), "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb") } });
   await expect(page.getByRole("listitem", { name: "雪域金澜的回答" })).toHaveCount(4);
   expect(await region.evaluate((element) => element.scrollTop)).toBe(before);
   await expect(field(page)).toBeFocused();

@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import type { AnswerBlock, AssistantMessage } from "@/lib/answers/contracts";
+import { FIELD_LABELS, NOTICE_TEXT, fieldValueLabel } from "@/lib/answers/labels";
 import { useState, type ReactNode } from "react";
 import { BookOpen, Bot, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ export type ChatMessage =
       id: string;
       role: "assistant";
       text: string;
+      structured?: AssistantMessage;
       evidence?: string;
       generalKnowledge?: string;
       sourceLabel?: string;
@@ -70,7 +73,7 @@ export function Message({ message, footer }: { message: ChatMessage; footer?: Re
         <p className="text-sm font-medium">雪域金澜</p>
         <Card>
           <CardContent className="space-y-5 text-base leading-7 wrap-anywhere">
-            {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
+            {message.structured ? <StructuredAnswer message={message.structured} /> : message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
             {message.evidence && <section aria-label="数据库依据"><h2 className="font-semibold">数据库依据</h2><p className="whitespace-pre-wrap">{message.evidence}</p></section>}
             {message.generalKnowledge && <section aria-label="通用知识补充"><h2 className="font-semibold">通用知识补充</h2><p className="whitespace-pre-wrap">{message.generalKnowledge}</p></section>}
             <div className="space-y-2 border-t pt-3">
@@ -91,4 +94,29 @@ export function Message({ message, footer }: { message: ChatMessage; footer?: Re
       </div>
     </li>
   );
+}
+
+function StructuredAnswer({ message }: { message: AssistantMessage }) {
+  const sections: { kind: AnswerBlock["kind"]; blocks: AnswerBlock[] }[] = [];
+  for (const block of message.blocks) {
+    const previous = sections.at(-1);
+    if (previous?.kind === block.kind) previous.blocks.push(block);
+    else sections.push({ kind: block.kind, blocks: [block] });
+  }
+
+  return <>
+    {message.kind === "clarification" ? <p className="whitespace-pre-wrap">{message.question}</p> : sections.map((section, index) => <section key={index} className="space-y-3" aria-label={section.kind === "archive" ? "数据库依据" : "通用知识补充"}>
+      <h2 className="font-semibold">{section.kind === "archive" ? "数据库依据" : "通用知识补充"}</h2>
+      {section.blocks.map((block, paragraph) => <p key={paragraph} className="whitespace-pre-wrap">{block.text}{block.evidenceKeys.map((key) => <span key={key} className="ml-1 text-xs text-muted-foreground">[{key}]</span>)}</p>)}
+    </section>)}
+    {message.references.length > 0 && <section aria-label="依据摘要" className="space-y-3 border-t pt-3 text-sm">
+      <h2 className="font-semibold">依据摘要</h2>
+      {message.references.map((ref) => <div key={ref.key} className="space-y-1">
+        <p>[{ref.key}] {ref.label} · {FIELD_LABELS[ref.field]}</p>
+        <p className="text-muted-foreground">{fieldValueLabel(ref.field, ref.value)}</p>
+        {ref.sources.length ? ref.sources.map((source) => <p key={source.linkId} className="text-muted-foreground">来源：{source.title || "未记录标题"}{source.locator ? ` · ${source.locator}` : ""}{!source.supportedField ? "（未限定支持字段）" : ""}</p>) : <p className="text-muted-foreground">仅数据库记录，暂无字段来源。</p>}
+      </div>)}
+    </section>}
+    {message.notices.map((notice) => <p key={notice} className="text-sm text-muted-foreground">{NOTICE_TEXT[notice]}</p>)}
+  </>;
 }

@@ -7,11 +7,11 @@ Provide reliable text submission and ordered page-local conversation context, wi
 
 ### Requirement: Text submission gestures
 
-The system SHALL submit a draft containing nonempty text or at least one prepared image by send button, preserve internal newlines, and reject drafts containing neither usable text nor a prepared image. Desktop Enter SHALL send and Shift+Enter SHALL insert a newline; mobile/touch Enter SHALL insert a newline. Input-method composition confirmation SHALL NOT submit a message.
+The system SHALL submit a draft containing nonempty text or at least one prepared image by send button within the defined input/context budgets, preserve internal newlines, and reject drafts containing neither usable text nor a prepared image. Desktop Enter SHALL send and Shift+Enter SHALL insert a newline; mobile/touch Enter SHALL insert a newline. Input-method composition confirmation SHALL NOT submit a message.
 
 #### Scenario: Submit valid text
 
-- **WHEN** a visitor submits a nonempty draft with surrounding whitespace
+- **WHEN** a visitor submits a nonempty draft within the context limits with surrounding whitespace
 - **THEN** one user message appears with outer whitespace trimmed and internal newlines preserved
 - **AND** only that submitted draft is cleared and one request starts.
 
@@ -30,14 +30,20 @@ The system SHALL submit a draft containing nonempty text or at least one prepare
 - **WHEN** a desktop visitor uses Shift+Enter or a mobile/touch visitor uses Enter
 - **THEN** the draft gains a newline without submitting.
 
+#### Scenario: Preserve an oversized text draft before dispatch
+
+- **WHEN** known message/text/serialized context limits are exceeded before submission
+- **THEN** no user turn or request is created and the complete composer text/images remain available
+- **AND** existing-history overflow explains deliberate full-clear refresh without silently truncating context.
+
 ### Requirement: Ordered current-page context
 
-The system SHALL snapshot ordered eligible text/image history and the current user message exactly once per request. It SHALL include completed user/assistant content and settled unavailable user turns with their complete ordered prepared image bytes, exclude earlier failed turns, statuses and drafts, and retain stable turn identity for retry.
+The system SHALL snapshot completed user/assistant answer or clarification pairs and the current user message exactly once per request, preserving eligible prepared image bytes/order and stable retry identity. Failed/unavailable turns, UI statuses and next drafts SHALL remain outside new context. Canonical assistant text SHALL preserve validated evidence/general-knowledge labels without treating client history as trusted facts.
 
 #### Scenario: Submit a follow-up
 
-- **WHEN** a visitor submits a follow-up after completed exchanges or unavailable turns
-- **THEN** the request contains their eligible text and prepared image contents in order followed by the current turn once
+- **WHEN** a visitor submits a follow-up after completed exchanges, clarification or failed/unavailable turns
+- **THEN** the request contains only completed pairs' eligible text and prepared image contents in order followed by the current turn once
 - **AND** it excludes UI notices, earlier failed turns, retry metadata, and unsent draft text.
 
 #### Scenario: Retry a failed final turn
@@ -48,9 +54,9 @@ The system SHALL snapshot ordered eligible text/image history and the current us
 
 #### Scenario: Continue after unavailable turns
 
-- **WHEN** several valid user questions have settled as generation-unavailable without assistant replies
-- **THEN** the next request retains these eligible user messages in order
-- **AND** request validation accepts consecutive user entries rather than requiring alternating roles.
+- **WHEN** user questions have settled as unavailable without assistant replies
+- **THEN** those turns remain visible but the next request excludes them and includes only completed pairs plus the new question
+- **AND** structural request validation can still accept consecutive user entries without treating them as verified history.
 
 ### Requirement: Single active request
 
@@ -75,23 +81,29 @@ The system SHALL allow only one active POST request per page, expose pending sta
 
 ### Requirement: Honest response availability
 
-The real endpoint SHALL return a distinct generation-unavailable outcome for valid text-only or image-bearing requests until live AI is integrated. The UI SHALL represent it as a settled system status, not an assistant answer. Synthetic successful replies SHALL exist only in tests and development-only verification.
+The real endpoint SHALL generate validated whole text replies only when server configuration enables it. Missing/off configuration SHALL return generation_unavailable without a provider call. Current valid image turns SHALL retain submission/display but return image_understanding_unavailable until interpretation is integrated. Unavailable statuses SHALL NOT become assistant answers or reusable unanswered context. Product canned replies SHALL remain prohibited.
 
 #### Scenario: Submit before AI integration
 
-- **WHEN** a valid text-only or image-bearing request reaches the real application endpoint
-- **THEN** the endpoint returns HTTP 503 with `error.code` equal to `generation_unavailable`, without a provider call, stored conversation, or persisted visitor image
-- **AND** the page shows `AI 回复暂未接入，暂时无法回复。` beside the turn, appends no assistant answer, and permits another valid submission.
+- **WHEN** a valid in-budget text-only request reaches the real endpoint with missing/disabled server generation configuration
+- **THEN** it returns HTTP 503 with generation_unavailable without a provider call or stored conversation
+- **AND** the page shows a nonretryable Chinese service-unavailable status, appends no assistant answer and permits another submission.
+
+#### Scenario: Submit a valid current image turn
+
+- **WHEN** a visitor sends valid prepared images with or without text while visual interpretation is unavailable
+- **THEN** the complete image turn is submitted/displayed and the endpoint returns HTTP 422 with image_understanding_unavailable without a provider call
+- **AND** the page explains the image capability limit without pretending images were interpreted.
 
 #### Scenario: Test a successful response boundary
 
-- **WHEN** a test supplies a valid matching assistant response through the transport boundary
+- **WHEN** a test supplies a valid matching structured assistant response through the transport boundary
 - **THEN** the answer appears once after its user message and can participate in later context
 - **AND** this mocked success path does not enable product canned responses.
 
 ### Requirement: Request validation and failure recovery
 
-The system SHALL validate request/response shapes, reject unsupported roles and malformed submissions or user entries with neither text nor images, bound pending requests, and retain failed user messages. Only a transiently failed final user turn with no active request SHALL offer retry; a new later turn SHALL retire historical retry and exclude the failed turn from future context.
+The system SHALL validate request/structured response shapes, enforce defined budgets/deadlines and retain failed turns. Only defined transient final-turn failures SHALL offer identical manual retry. Corrective failures SHALL preserve newer composer state and allow guarded explicit editing of the final question when the composer is empty/idle. New requests SHALL exclude failed/unavailable context and retire historical retry/edit actions.
 
 #### Scenario: Reject an invalid request
 
@@ -100,8 +112,8 @@ The system SHALL validate request/response shapes, reject unsupported roles and 
 
 #### Scenario: Show a retryable failure
 
-- **WHEN** a request fails through network error, timeout, an unexpected HTTP outcome outside defined corrective errors, or a malformed/mismatched response
-- **THEN** the page retains its user message, shows `发送失败，请重试。`, and offers retry only while it is the final user turn and no request is active
+- **WHEN** a request has a client transport/protocol failure or a defined transient outcome: busy, provider_busy, provider_failed, generation_timeout or evidence_changed
+- **THEN** the page retains its user message, shows `发送失败，请重试。`, and labels retry as a fresh AI request only while it is the final user turn and no request is active
 - **AND** retry preserves the current draft and never duplicates that user message.
 
 #### Scenario: Continue after a failure
@@ -111,12 +123,13 @@ The system SHALL validate request/response shapes, reject unsupported roles and 
 
 #### Scenario: Distinguish unavailable from a generic failure
 
-- **WHEN** a request receives HTTP 503 with an unexpected body, HTTP 400, or another non-success result outside the defined generation-unavailable combination
-- **THEN** the client uses the failure state rather than claiming that AI integration is the cause.
+- **WHEN** a response contains a defined failure code or malformed/unknown protocol data
+- **THEN** defined deterministic failures remain nonretryable and unknown/malformed responses are protocol failures rather than false AI-unavailable successes
+- **AND** raw provider messages or credentials are never shown.
 
 #### Scenario: Return uncached request outcomes
 
-- **WHEN** the endpoint returns a generation-unavailable, invalid-request, invalid-image, unsupported-media-type, or request-too-large result
+- **WHEN** the endpoint returns any successful answer, clarification or failure result
 - **THEN** the response includes `Cache-Control: no-store` and no request context is put in shared cache.
 
 #### Scenario: Ignore a stale attempt
@@ -135,6 +148,12 @@ The system SHALL validate request/response shapes, reject unsupported roles and 
 - **WHEN** complete eligible text/image context exceeds 4,000,000 serialized UTF-8 bytes
 - **THEN** no request or new user turn is created and the draft remains intact
 - **AND** image-history overflow shows the approved refresh/full-clear warning instead of dropping earlier images.
+
+#### Scenario: Edit a corrective failure without replacing the next draft
+
+- **WHEN** the final user question has failed and the composer has no text, selected images, active request or image preparation
+- **THEN** explicit edit copies the failed question text into the composer, removes that failed turn and sends nothing
+- **AND** it does not restore old images; if a newer draft/images exist, editing cannot overwrite them.
 
 ### Requirement: Ephemeral conversation lifetime
 

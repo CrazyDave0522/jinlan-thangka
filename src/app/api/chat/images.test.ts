@@ -1,6 +1,7 @@
 // @vitest-environment node
 import sharp from "sharp";
 import { expect, it, vi } from "vitest";
+vi.mock("server-only", () => ({}));
 import { POST } from "./route";
 import { IMAGE_LIMITS } from "@/lib/chat/image-policy";
 async function attachment() {
@@ -17,13 +18,13 @@ async function outcome(response: Response, status: number, code: string) {
 }
 it("decodes a real image-only set without contacting storage/providers or persisting files", async () => {
   const fetch = vi.spyOn(global, "fetch").mockRejectedValue(new Error("unexpected external call"));
-  await outcome(await POST(request([await attachment()])), 503, "generation_unavailable");
+  await outcome(await POST(request([await attachment()])), 422, "image_understanding_unavailable");
   expect(fetch).not.toHaveBeenCalled();
   fetch.mockRestore();
 });
 it("accepts four images and a mixed text/image history", async () => {
   const images = await Promise.all(Array.from({ length: 4 }, async (_, i) => ({ ...await attachment(), id: `${i}` })));
-  await outcome(await POST(request(images)), 503, "generation_unavailable");
+  await outcome(await POST(request(images)), 422, "image_understanding_unavailable");
   const body = { turnId: "next", messages: [{ id: "q", role: "user", text: "", images }, { id: "next", role: "user", text: "比较一下" }] };
   await outcome(await POST(new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify(body) })), 503, "generation_unavailable");
 });

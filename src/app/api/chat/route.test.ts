@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from "vitest";
+vi.mock("server-only", () => ({}));
 import { POST } from "./route";
 
 afterEach(() => vi.unstubAllGlobals());

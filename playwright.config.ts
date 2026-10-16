@@ -9,14 +9,19 @@ export default defineConfig({
   use: { browserName: "chromium", trace: "retain-on-failure" },
   webServer: [
     {
-      command: "npm run build && npm run start -- --hostname 127.0.0.1 --port 3100",
+      command: "node tests/browser/server/launch.mjs off",
       timeout: 120_000,
       url: "http://127.0.0.1:3100",
-      env: { NEXT_PUBLIC_SUPABASE_URL: "", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "" },
       reuseExistingServer: false,
     },
     {
-      command: "npx vite --config tests/browser/vite.config.mts",
+      command: "node tests/browser/server/launch.mjs fixture",
+      url: "http://127.0.0.1:3102",
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+    {
+      command: "node tests/browser/server/launch.mjs harness",
       url: "http://127.0.0.1:3101",
       reuseExistingServer: false,
     },

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ChatInterface } from "./chat-interface";
 import type { ChatMessage } from "./chat-message";
+import { canonical, type AssistantMessage } from "@/lib/answers/contracts";
 
 const messages: ChatMessage[] = [
   { id: "question", role: "user", text: "这幅测试图片有什么特点？", image: { src: "/test-image.png", alt: "测试图片", width: 120, height: 160 } },
@@ -89,5 +90,54 @@ describe("conversation presentation", () => {
     await user.tab();
     expect(source).not.toHaveFocus();
     expect(copy).not.toHaveFocus();
+  });
+});
+
+describe("structured answer section headings", () => {
+  it("shows one general-knowledge heading for three consecutive paragraphs, without repeated canonical text", () => {
+    const structured: AssistantMessage = {
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", role: "assistant", kind: "answer",
+      text: "",
+      blocks: [
+        { kind: "general", text: "题材指画面表现的内容。", evidenceKeys: [] },
+        { kind: "general", text: "风格指画面的表现方式。", evidenceKeys: [] },
+        { kind: "general", text: "同一题材可以采用不同风格。", evidenceKeys: [] },
+      ], references: [], notices: ["no_retrieval"],
+    };
+    structured.text = canonical(structured);
+    render(<ChatInterface messages={[{ ...structured, structured }]} />);
+    expect(screen.getAllByRole("heading", { name: "通用知识补充" })).toHaveLength(1);
+    const section = screen.getByRole("region", { name: "通用知识补充" });
+    expect(Array.from(section.querySelectorAll("p"), (p) => p.textContent)).toEqual(structured.blocks.map((b) => b.text));
+    for (const block of structured.blocks) expect(screen.getAllByText(block.text, { exact: true })).toHaveLength(1);
+    expect(screen.queryByText(structured.text)).not.toBeInTheDocument();
+    expect(screen.getAllByText("本次为通用知识交流，未检索数据库。", { exact: true })).toHaveLength(1);
+  });
+
+  it("groups adjacent evidence paragraphs while retaining mixed-content order, citations and separate answer boundaries", () => {
+    const structured: AssistantMessage = {
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", role: "assistant", kind: "answer", text: "",
+      blocks: [
+        { kind: "general", text: "先说明一般背景。", evidenceKeys: [] },
+        { kind: "archive", text: "档案中的姓名是测试画师。", evidenceKeys: ["E1"] },
+        { kind: "archive", text: "该记录采用测试画师这一展示名称。", evidenceKeys: ["E1"] },
+        { kind: "general", text: "最后补充一般知识。", evidenceKeys: [] },
+      ],
+      references: [{ key: "E1", owner: { table: "artists", id: "00000000-0000-0000-0000-000000000001" }, label: "测试画师", field: "display_name", value: "测试画师", reviewStatus: "verified", attributionStatus: null, sources: [] }],
+      notices: ["record_only"],
+    };
+    structured.text = canonical(structured);
+    const next = { ...structured, id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", blocks: [{ kind: "general" as const, text: "下一条独立回答。", evidenceKeys: [] }], references: [], notices: [] };
+    next.text = canonical(next);
+    render(<ChatInterface messages={[{ ...structured, structured }, { ...next, structured: next }]} />);
+    const answers = screen.getAllByRole("listitem", { name: "雪域金澜的回答" });
+    expect(within(answers[0]).getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["通用知识补充", "数据库依据", "通用知识补充", "依据摘要"]);
+    const evidence = within(answers[0]).getByRole("region", { name: "数据库依据" });
+    expect(Array.from(evidence.querySelectorAll("p"), (p) => p.textContent)).toEqual([
+      "档案中的姓名是测试画师。[E1]", "该记录采用测试画师这一展示名称。[E1]",
+    ]);
+    expect(within(answers[0]).getByRole("region", { name: "依据摘要" })).toHaveTextContent("[E1] 测试画师 · 姓名");
+    expect(within(answers[1]).getAllByRole("heading", { name: "通用知识补充" })).toHaveLength(1);
+    expect(within(answers[1]).getByText("下一条独立回答。", { exact: true })).toBeInTheDocument();
   });
 });

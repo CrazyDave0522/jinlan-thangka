@@ -45,5 +45,8 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 
+# Manually authorized AI evaluation artifacts (separate from Playwright output cleanup).
+/evaluation-results/
+
 # Supabase CLI local cache
 /supabase/.temp/

@@ -26,7 +26,7 @@ function select() { fireEvent.change(screen.getByLabelText("选择图片", { exa
 beforeEach(() => {
   vi.mocked(prepareImage).mockReset().mockImplementation(async () => image());
   vi.mocked(encodeRequest).mockClear();
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ error: { code: "generation_unavailable" } }, { status: 503 })));
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ error: { code: "image_understanding_unavailable" } }, { status: 422 })));
   vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
   vi.stubGlobal("URL", Object.assign(URL, { revokeObjectURL: vi.fn() }));
 });
@@ -131,7 +131,7 @@ it("locks before async encoding, keeps next drafts and retries the captured imag
   expect(fetch).toHaveBeenCalledTimes(1);
   await act(async () => first.resolve(Response.json({}, { status: 500 })));
   fireEvent.click(await screen.findByRole("button", { name: "重试" }));
-  await screen.findByText("AI 回复暂未接入，暂时无法回复。");
+  await screen.findByText("图片解读暂未接入，请先发送纯文字问题。");
   expect(vi.mocked(encodeRequest).mock.calls[1][0]).toEqual(vi.mocked(encodeRequest).mock.calls[0][0]);
   expect(field()).toHaveValue("新草稿");
   expect(screen.getByRole("button", { name: "移除图片 1" })).toBeEnabled();
@@ -147,7 +147,7 @@ it("abandons async encoding on timeout without calling fetch or losing a newer d
   await act(async () => { await Promise.resolve(); await Promise.resolve(); });
   fireEvent.click(send());
   fireEvent.change(field(), { target: { value: "保留的新草稿" } });
-  act(() => vi.advanceTimersByTime(30_000));
+  act(() => vi.advanceTimersByTime(65_000));
   expect(screen.getByRole("button", { name: "重试" })).toBeEnabled();
   await act(async () => encoded.resolve("late-wire"));
   expect(fetch).not.toHaveBeenCalled();
@@ -183,9 +183,27 @@ it("clears an old request-size warning when the visitor removes an image", async
   await screen.findByRole("button", { name: "移除图片 1" });
   fireEvent.change(field(), { target: { value: "x".repeat(4_000_000) } });
   fireEvent.click(send());
-  expect(screen.getByRole("alert")).toHaveTextContent("减少图片或文字");
+  expect(screen.getByRole("alert")).toHaveTextContent("缩短问题");
   expect(fetch).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "移除图片 1" }));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(field()).toHaveValue("x".repeat(4_000_000));
+});
+
+it("explicit editing releases failed attachment previews without restoring them", async () => {
+  const prepared = image();
+  vi.mocked(prepareImage).mockResolvedValueOnce(prepared);
+  render(<ChatConversation />);
+  select();
+  await screen.findByRole("button", { name: "移除图片 1" });
+  fireEvent.change(field(), { target: { value: "比较图片" } });
+  fireEvent.click(send());
+  await screen.findByRole("button", { name: "编辑问题" });
+  expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(prepared.url);
+  fireEvent.click(screen.getByRole("button", { name: "编辑问题" }));
+  expect(field()).toHaveValue("比较图片");
+  expect(screen.queryByRole("list", { name: "待发送图片" })).not.toBeInTheDocument();
+  expect(URL.revokeObjectURL).toHaveBeenCalledWith(prepared.url);
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("alert")).toHaveTextContent("重新选择图片");
 });

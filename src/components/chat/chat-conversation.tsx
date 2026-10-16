@@ -4,11 +4,14 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from
 import { createRequest, parseChatResponse, type Turn } from "@/lib/chat/conversation";
 import { Button } from "@/components/ui/button";
 import { encodeRequest, requestSize, requestLimitNotice } from "@/lib/chat/image-client";
-import { IMAGE_LIMITS, INVALID_IMAGE_NOTICE } from "@/lib/chat/image-policy";
+import { IMAGE_LIMITS } from "@/lib/chat/image-policy";
 import { useImageDraft } from "./use-image-draft";
 import { ChatInterface } from "./chat-interface";
 
-export const REQUEST_TIMEOUT = 30_000;
+import { contextValid, retryable as canRetry } from "@/lib/answers/contracts";
+import { failureCopy } from "@/lib/answers/failure-copy";
+
+export const REQUEST_TIMEOUT = 65_000;
 
 type Attempt = { controller: AbortController; timer: ReturnType<typeof setTimeout> };
 
@@ -76,10 +79,6 @@ export function ChatConversation() {
         });
         if (response.status === 413) { settle({ status: "failed", failure: "request_too_large" }); return; }
         const body: unknown = await response.json();
-        if (response.status === 422 && body && typeof body === "object" && "error" in body &&
-          body.error && typeof body.error === "object" && "code" in body.error && body.error.code === "invalid_image") {
-          settle({ status: "failed", failure: "invalid_image" }); return;
-        }
         const ids = history.current.flatMap((item) => [item.user.id, ...(item.answer ? [item.answer.id] : [])]);
         settle(parseChatResponse(response.status, body, turn.request, ids));
       } catch (failure) {
@@ -93,6 +92,7 @@ export function ChatConversation() {
     if (active.current || imageDraft.isPreparing() || (!text && !imageDraft.images.length)) return;
     const user = { id: crypto.randomUUID(), role: "user" as const, text, ...(imageDraft.images.length ? { images: [...imageDraft.images] } : {}) };
     const request = createRequest(history.current, user);
+    if (!contextValid(request.messages)) { setNotice(failureCopy("context_too_large")); return; }
     if (requestSize(request) > IMAGE_LIMITS.requestBytes) { setNotice(requestLimitNotice(request)); return; }
     setNotice("");
     run({ user, request, status: "pending" });
@@ -118,7 +118,7 @@ export function ChatConversation() {
   const pending = turns.some((turn) => turn.status === "pending");
   const last = turns[turns.length - 1];
   return <ChatInterface
-    messages={turns.flatMap((turn) => [{ ...turn.user, role: "user" as const, images: turn.user.images?.map((image, index) => ({ src: image.url, alt: `图片 ${index + 1}`, width: image.width, height: image.height })) }, ...(turn.answer ? [{ id: turn.answer.id, role: "assistant" as const, text: turn.answer.text }] : [])])}
+    messages={turns.flatMap((turn) => [{ ...turn.user, role: "user" as const, images: turn.user.images?.map((image, index) => ({ src: image.url, alt: `图片 ${index + 1}`, width: image.width, height: image.height })) }, ...(turn.answer ? [{ id: turn.answer.id, role: "assistant" as const, text: turn.answer.text, structured: turn.answer.kind ? turn.answer as import("@/lib/answers/contracts").AssistantMessage : undefined }] : [])])}
     regionRef={region} onScroll={trackScroll}
     composer={{ draft, onChange: (value) => { setDraft(value); setNotice(""); }, onSubmit: submit, onKeyDown: keyDown, pending,
       images: imageDraft.images, preparing: imageDraft.preparing, onFiles: (files) => { setNotice(""); void imageDraft.select(files); }, onRemove: (id) => { setNotice(""); imageDraft.remove(id); },
@@ -134,20 +134,32 @@ export function ChatConversation() {
     messageFooter={(id) => {
       const turn = turns.find((item) => item.user.id === id);
       if (!turn || turn.status === "completed") return null;
-      const retryable = turn === last && turn.status === "failed" && !turn.failure && !pending;
-      return <div className="mt-2 flex max-w-full items-center gap-2 text-sm text-muted-foreground">
+      const retryable = turn === last && turn.status === "failed" && canRetry(turn.failure) && !pending;
+      const editable = turn === last && turn.status !== "pending" && !pending && !draft && !imageDraft.images.length && !imageDraft.preparing;
+      return <div className="mt-2 flex max-w-full flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <p role={turn.status === "failed" ? "alert" : "status"}>
-          {turn.status === "pending" ? "正在处理…" : turn.status === "unavailable" ? "AI 回复暂未接入，暂时无法回复。" : turn === last && turn.failure ? (turn.failure === "invalid_image" ? INVALID_IMAGE_NOTICE : requestLimitNotice(turn.request)) : retryable ? "发送失败，请重试。" : "发送失败。"}
+          {turn.status === "pending" ? "正在处理…" : turn === last ? (turn.failure === "request_too_large" ? requestLimitNotice(turn.request) : turn.failure ? failureCopy(turn.failure) : retryable ? "发送失败，请重试。" : "发送失败。") : turn.status === "unavailable" ? failureCopy("generation_unavailable") : "发送失败。"}
         </p>
+        {retryable && <span className="text-xs">重试会重新请求 AI</span>}
         {retryable && <RetryButton onRetry={() => {
           if (active.current || history.current.at(-1)?.user.id !== id) return;
           run(turn);
         }} />}
+        {editable && <Button type="button" variant="outline" size="sm" onClick={() => {
+          if (active.current || imageDraft.isPreparing() || draft || imageDraft.images.length || history.current.at(-1)?.user.id !== id) return;
+          const next = history.current.filter((item) => item.user.id !== id);
+          update(next);
+          setDraft(turn.user.text);
+          setNotice(turn.user.images?.length ? "已恢复问题文字，请按需重新选择图片。" : "");
+          const retained = new Set(next.flatMap((t) => [t.user, ...t.request.messages]).flatMap((m) => m.images?.map((i) => i.id) ?? []));
+          imageDraft.releaseUnreferenced(retained);
+          document.querySelector<HTMLTextAreaElement>('textarea[aria-label="消息内容"]')?.focus();
+        }}>编辑问题</Button>}
       </div>;
     }}
   />;
 }
 
 function RetryButton({ onRetry }: { onRetry: () => void }) {
-  return <Button type="button" variant="outline" size="sm" onClick={onRetry}>重试</Button>;
+  return <Button type="button" variant="outline" size="sm" onClick={onRetry}title="重试会重新请求 AI">重试</Button>;
 }

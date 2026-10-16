@@ -36,7 +36,7 @@ The following versions and ranges are declared in `package.json`:
 
 ### Code Style
 
-- Use English for project documentation, source comments, SQL comments, metadata descriptions, and interface text, as required by the root `AGENTS.md`.
+- Use English for source code, identifiers, filenames, project documentation, source comments, and SQL comments. Product interface copy is Simplified Chinese, as clarified by the owner; Chinese branding in design images is intentional. The English brand name is `Jinlan Thangka`.
 - Follow the existing TypeScript style: double quotes, semicolons, and two-space indentation. No separate formatter configuration is currently present.
 - Use the `@/*` alias for imports rooted in `src`; existing Supabase helpers also use relative imports within their directory.
 - Preserve database identifiers in snake_case, as defined by the supplied SQL.

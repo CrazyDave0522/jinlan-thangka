@@ -29,7 +29,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project language
 
-Use English for all project content, including documentation, source comments, SQL comments, metadata descriptions, and interface text.
+Use English for source code, identifiers, filenames, documentation, source comments, and SQL comments. The product interface and user-facing copy must be in Simplified Chinese; brand artwork may contain Chinese lettering. Keep this distinction when designing or implementing screens.
 
 ## UI conventions
 

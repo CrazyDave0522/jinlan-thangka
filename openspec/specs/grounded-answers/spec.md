@@ -131,8 +131,14 @@ The system SHALL validate the finalized image-interpretation design's extended s
 #### Scenario: Group adjacent paragraphs without repeated headings
 
 - **WHEN** one answer contains consecutive blocks of the same visual/archive/general kind
-- **THEN** each consecutive run has one category heading and separate paragraphs in the original order
-- **AND** kind transitions and separate answers retain their own headings, with citations on their original paragraphs and deterministic canonical history preserving the extended labels and source-image identity.
+- **THEN** each consecutive run has one category heading and separate paragraphs in the original order, except an answer containing only general blocks has no category heading
+- **AND** mixed answers retain headings at kind transitions and remain independent of separate answers, with citations on their original paragraphs and deterministic canonical history preserving the extended labels and source-image identity.
+
+#### Scenario: Present an ordinary standalone reply
+
+- **WHEN** a greeting, procedural response or other answer contains only general blocks
+- **THEN** its body and plain-text copy SHALL omit the supplement heading while preserving paragraph order and applicable retrieval notices
+- **AND** general blocks alongside archive or image-observation blocks SHALL retain their distinct knowledge heading; canonical history and validated response contracts remain unchanged.
 
 #### Scenario: Preserve a newer draft when correcting a failed question
 

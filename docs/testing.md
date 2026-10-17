@@ -112,6 +112,10 @@ Vitest does not directly render async Server Components or exercise the full Nex
 
 ## Grounded Answer Verification
 
+Standalone general replies, including greetings, render and copy without a supplement heading in both response formats. Mixed archive/visual answers retain their knowledge sections. Regression coverage preserves canonical history and retrieval notices, exercises greetings at all eight core viewports and checks native Chromium clipboard output with isolated synthetic upstreams.
+
+The 2026-10-17 greeting fix passed `npm run check` (34 Vitest files / 391 tests), the full isolated Chromium suite (93 tests), strict OpenSpec validation (eight items) and `git diff --check`. Representative 390×844 and 1366×768 greeting screenshots were inspected; body text, retrieval notice and controls remain readable and reachable.
+
 `src/lib/answers/*.test.ts` covers exact public/model schemas, Unicode/context/input/output limits, source field scope, same-identity evidence drift, unknown citations, raw-response bounds, explicit provider mode/call limits, failure mapping, cancellation/stage deadlines and admission cleanup. Route tests exercise real orchestration over mocked fetch. Component tests cover draft ownership and image lifetime. `fixture-isolation.test.ts` launches the actual preload in a child process to check inherited overrides, startup failures and network blocking.
 
 Routine tests prove contract behavior, not semantic truth. A genuine but irrelevant citation or an unsupported archive claim marked general knowledge needs human/model-quality evaluation; schema checks cannot reject all such statements. See [ai-setup.md](ai-setup.md) for the separate, manually authorized funded evaluation, incomplete-evidence limitations and deployment checks.

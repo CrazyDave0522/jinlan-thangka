@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { ChatInterface } from "./chat-interface";
 import type { ChatMessage } from "./chat-message";
 import { canonical, type AssistantMessage } from "@/lib/answers/contracts";
+import { generalAnswer, imageSourceAnswer } from "../../../tests/fixtures/answer-sources";
+import { canonicalImage } from "@/lib/vision/output";
 
 const messages: ChatMessage[] = [
   {
@@ -153,7 +155,18 @@ describe("conversation presentation", () => {
 });
 
 describe("structured answer section headings", () => {
-  it("shows one general-knowledge heading for three consecutive paragraphs, without repeated canonical text", () => {
+  it.each([1, 2] as const)("renders a version-%i greeting without a knowledge heading or named knowledge region", (version) => {
+    const answer = generalAnswer(version);
+    render(<ChatInterface messages={[answer]} />);
+    expect(screen.getByText(answer.structured.blocks[0].text, { exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "通用知识补充" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "通用知识补充" })).not.toBeInTheDocument();
+    expect(screen.getByText(version === 1 ? "本次为通用知识交流，未检索数据库。" : "本次未检索数据库。", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "查看来源" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "复制回答" })).toBeEnabled();
+  });
+
+  it("preserves separate paragraphs in a general-only answer without adding a supplement heading", () => {
     const structured: AssistantMessage = {
       id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       role: "assistant",
@@ -174,9 +187,9 @@ describe("structured answer section headings", () => {
     structured.text = canonical(structured);
     render(<ChatInterface messages={[{ ...structured, structured }]} />);
     expect(
-      screen.getAllByRole("heading", { name: "通用知识补充" }),
-    ).toHaveLength(1);
-    const section = screen.getByRole("region", { name: "通用知识补充" });
+      screen.queryByRole("heading", { name: "通用知识补充" }),
+    ).not.toBeInTheDocument();
+    const section = screen.getByRole("listitem", { name: "雪域金澜的回答" }).querySelector("section")!;
     expect(
       Array.from(section.querySelectorAll("p"), (p) => p.textContent),
     ).toEqual(structured.blocks.map((b) => b.text));
@@ -270,10 +283,19 @@ describe("structured answer section headings", () => {
       within(answers[0]).getByRole("region", { name: "本条回答使用的依据" }),
     ).toHaveTextContent("[E1] 测试画师 · 姓名");
     expect(
-      within(answers[1]).getAllByRole("heading", { name: "通用知识补充" }),
-    ).toHaveLength(1);
+      within(answers[1]).queryByRole("heading", { name: "通用知识补充" }),
+    ).not.toBeInTheDocument();
     expect(
       within(answers[1]).getByText("下一条独立回答。", { exact: true }),
     ).toBeInTheDocument();
+  });
+
+  it("retains the knowledge supplement heading alongside image observations", () => {
+    const answer = imageSourceAnswer();
+    answer.structured.blocks.push({ kind: "general", text: "唐卡的设色可采用矿物颜料。", evidenceKeys: [], observationIds: [] });
+    answer.structured.text = canonicalImage(answer.structured, answer.imageContext);
+    render(<ChatInterface messages={[answer]} />);
+    expect(screen.getByRole("region", { name: "通用知识补充" })).toHaveTextContent("唐卡的设色可采用矿物颜料。");
+    expect(screen.getAllByRole("heading", { name: "通用知识补充" })).toHaveLength(1);
   });
 });

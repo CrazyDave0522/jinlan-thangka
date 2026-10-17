@@ -2,13 +2,23 @@ import { describe, expect, it } from "vitest";
 import { canonical, jsonBytes, parseAssistant, type AnswerReference } from "./contracts";
 import { canonicalImage, parseAssistantV2 } from "@/lib/vision/output";
 import { exportAnswer, displayValue, referenceLines, groupLines } from "./presentation";
-import { imageSourceAnswer, sourceAnswer, sourceId } from "../../../tests/fixtures/answer-sources";
+import { generalAnswer, imageSourceAnswer, sourceAnswer, sourceId } from "../../../tests/fixtures/answer-sources";
 import { successV2 } from "../../../tests/fixtures/vision";
 
 function freeze(value: unknown) {
   if (value && typeof value === "object") { Object.freeze(value); Object.values(value).forEach(freeze); }
 }
 describe("single-answer presentation exports", () => {
+  it.each([1, 2] as const)("exports a version-%i greeting without a supplement heading while preserving canonical history and notices", (version) => {
+    const answer = generalAnswer(version);
+    if ("imageContext" in answer) parseAssistantV2(answer.structured, answer.imageContext);
+    else parseAssistant(answer.structured);
+    const original = answer.structured.text;
+    freeze(answer);
+    expect(exportAnswer(answer)).toBe(`${answer.structured.blocks[0].text}\n\n${version === 1 ? "本次为通用知识交流，未检索数据库。" : "本次未检索数据库。"}`);
+    expect(answer.structured.text).toBe(original);
+    expect(original).toContain("通用知识补充");
+  });
   it("retains per-group caps and distinct same-label candidates even without requested identification", () => {
     const answer = imageSourceAnswer();
     const group = answer.structured.groups[0];

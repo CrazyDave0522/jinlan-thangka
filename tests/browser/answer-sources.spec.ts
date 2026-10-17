@@ -183,10 +183,11 @@ test("expanded evidence and fallback adapt continuously through intermediate wid
 test("native Chromium clipboard copies the chosen answer at trusted loopback", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto(home);
-  await send(page, "[fixture:general] 通用交流");
+  await send(page, "你好");
+  await expect(page.getByText("您好！请告诉我您想了解的具体内容。", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "复制回答" }).click();
   await expect(page.getByRole("status", { name: "复制状态" })).toHaveText("已复制");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("通用知识补充");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("您好！请告诉我您想了解的具体内容。\n\n本次未检索数据库。");
 });
 
 test("dismissing manual copy returns focus to a visible copy control in a short viewport", async ({ page }) => {

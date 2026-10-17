@@ -1,6 +1,23 @@
 import { expect, test } from "@playwright/test";
 const home = "http://127.0.0.1:3102";
 const viewports = [{width:360,height:800},{width:390,height:844},{width:414,height:896},{width:1280,height:720},{width:1366,height:768},{width:1536,height:864},{width:1920,height:1080},{width:2560,height:1440}];
+for (const viewport of viewports) test(`greetings render without a supplement heading at ${viewport.width}`, async ({ page }) => {
+  await page.setViewportSize(viewport);
+  await page.goto(home);
+  await page.getByRole("textbox", { name: "消息内容" }).fill("你好");
+  await page.getByRole("button", { name: "发送消息" }).click();
+  const answer = page.getByRole("listitem", { name: "雪域金澜的回答" });
+  await expect(answer.getByText("您好！请告诉我您想了解的具体内容。", { exact: true })).toBeVisible();
+  await expect(answer.getByRole("heading")).toHaveCount(0);
+  await expect(answer.getByRole("region", { name: "通用知识补充" })).toHaveCount(0);
+  await expect(answer.getByText("本次未检索数据库。", { exact: true })).toBeVisible();
+  await expect(answer.getByRole("button", { name: "查看来源" })).toHaveCount(0);
+  await expect(answer.getByRole("button", { name: "复制回答" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const send = await page.getByRole("button", { name: "发送消息" }).boundingBox();
+  expect(send!.y + send!.height).toBeLessThan(viewport.height);
+  if ([390,1366].includes(viewport.width)) await page.screenshot({ path: `test-results/greeting-${viewport.width}.png` });
+});
 for (const viewport of viewports) test(`real orchestration and evidence layout at ${viewport.width}`, async ({ page }) => {
   await page.setViewportSize(viewport);
   const errors: string[] = [];
@@ -70,7 +87,9 @@ test("corrective editing is explicit, creates a fresh question and protects next
   await expect(page.getByRole("listitem",{name:"用户消息"})).toHaveCount(0);
   await field.fill("[fixture:general] 文字交流");
   await page.getByRole("button",{name:"发送消息"}).click();
-  await expect(page.getByRole("heading",{name:"通用知识补充",exact:true})).toBeVisible();
+  const answer = page.getByRole("listitem", { name: "雪域金澜的回答" });
+  await expect(answer.getByText("唐卡艺术可从题材、构图与设色等方面欣赏。", { exact: true })).toBeVisible();
+  await expect(answer.getByRole("heading",{name:"通用知识补充",exact:true})).toHaveCount(0);
 });
 test("pending generation preserves input and reload discards the old attempt", async ({ page }) => {
   await page.goto(home);

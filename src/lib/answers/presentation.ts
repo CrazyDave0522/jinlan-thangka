@@ -1,4 +1,4 @@
-import type { AnswerReference, AssistantMessage } from "./contracts";
+import type { AnswerBlock, AnswerReference, AssistantMessage } from "./contracts";
 import { FIELD_LABELS, NOTICE_TEXT, fieldValueLabel } from "./labels";
 import type { Assistant, Block, GroupResult, ImageRequest, Observation, PublicComparison, Region } from "@/lib/vision/types";
 import { NOTICE_COPY } from "@/lib/vision/output";
@@ -79,8 +79,10 @@ export function referenceImageLines(message: Assistant, key: string) {
   const label = message.groups.flatMap((g) => g.candidates).find((c) => c.artworkId === image.artworkId)!.label;
   return [`[${key}] ${label} · 档案参考图核对`, `作品记录：${image.artworkId}`, `图片记录：${image.imageId}`, "已使用获准的档案参考图；参考图本身不证明作品对应或真伪。"];
 }
-export function blockTitle(block: Block, message: Assistant) {
-  return block.kind === "archive" ? "数据库依据" : block.kind === "general" ? "通用知识补充" : block.observationIds.every((id) => message.observations.some((o) => o.id === id)) ? "图片观察与解读" : "此前图片观察";
+export function blockTitle(block: AnswerBlock | Block, message: AssistantMessage | Assistant) {
+  if (block.kind === "archive") return "数据库依据";
+  if (block.kind === "general") return message.blocks.some((b) => b.kind !== "general") ? "通用知识补充" : undefined;
+  return isImageAnswer(message) && "observationIds" in block && block.observationIds.every((id) => message.observations.some((o) => o.id === id)) ? "图片观察与解读" : "此前图片观察";
 }
 export function exportAnswer(answer: DisplayAnswer): string {
   const message = answer.structured;
@@ -91,13 +93,13 @@ export function exportAnswer(answer: DisplayAnswer): string {
     parts.push(message.question);
     if (isImageAnswer(message) && message.reread && answer.imageContext) parts.push(`重新查看：${message.reread.imageIds.map((id) => pictureLabel(id, answer.imageContext!)).join("、")}`);
   } else {
-    let lastTitle = "";
+    let lastTitle: string | undefined;
     const image = isImageAnswer(message) ? message : null;
     const request = answer.imageContext;
     const observations = image && request ? relevantObservations(image, request) : [];
     for (const block of message.blocks) {
-      const title = image ? blockTitle(block as Block, image) : block.kind === "archive" ? "数据库依据" : "通用知识补充";
-      if (title !== lastTitle) parts.push(title);
+      const title = blockTitle(block, message);
+      if (title && title !== lastTitle) parts.push(title);
       lastTitle = title;
       const pictures = image && request ? [...new Set((block as Block).observationIds.map((id) => observations.find((o) => o.id === id)!.imageId))].map((id) => `[${pictureLabel(id, request)}]`).join("") : "";
       parts.push(`${block.text}${block.evidenceKeys.map((key) => `[${key}]`).join("")}${pictures}`);

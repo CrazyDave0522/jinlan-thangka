@@ -5,7 +5,7 @@ import type {
   Block,
   ImageRequest,
 } from "@/lib/vision/types";
-import { REASON_COPY, observationLines, relevantObservations } from "@/lib/answers/presentation";
+import { REASON_COPY, blockTitle, observationLines, relevantObservations } from "@/lib/answers/presentation";
 import { EvidenceMarker } from "./answer-sources";
 import { useAnswerReading } from "./answer-actions-context";
 import { NOTICE_COPY } from "@/lib/vision/output";
@@ -43,13 +43,7 @@ export function ImageAnswer({
         ? "current"
         : "prior"
       : block.kind;
-  const titles = {
-    current: "图片观察与解读",
-    prior: "此前图片观察",
-    archive: "数据库依据",
-    general: "通用知识补充",
-  };
-  const sections: { kind: keyof typeof titles; blocks: Block[] }[] = [];
+  const sections: { kind: ReturnType<typeof key>; blocks: Block[] }[] = [];
   for (const block of message.blocks) {
     const kind = key(block),
       previous = sections.at(-1);
@@ -77,24 +71,27 @@ export function ImageAnswer({
           )}
         </div>
       ) : (
-        sections.map((s, n) => (
-          <section key={n} className="space-y-3" aria-label={titles[s.kind]}>
-            <h2 className="font-semibold">{titles[s.kind]}</h2>
-            {s.blocks.map((b, p) => (
-              <p key={p} className="whitespace-pre-wrap">
-                {b.text}
-                {b.evidenceKeys.map((k) => <EvidenceMarker key={k} evidenceKey={k} />)}
-                {b.observationIds.map((id) => (
-                  <ImageLink
-                    key={id}
-                    id={observations.find((o) => o.id === id)!.imageId}
-                    request={request}
-                  />
-                ))}
-              </p>
-            ))}
-          </section>
-        ))
+        sections.map((s, n) => {
+          const title = blockTitle(s.blocks[0], message);
+          return (
+            <section key={n} className="space-y-3" aria-label={title}>
+              {title && <h2 className="font-semibold">{title}</h2>}
+              {s.blocks.map((b, p) => (
+                <p key={p} className="whitespace-pre-wrap">
+                  {b.text}
+                  {b.evidenceKeys.map((k) => <EvidenceMarker key={k} evidenceKey={k} />)}
+                  {b.observationIds.map((id) => (
+                    <ImageLink
+                      key={id}
+                      id={observations.find((o) => o.id === id)!.imageId}
+                      request={request}
+                    />
+                  ))}
+                </p>
+              ))}
+            </section>
+          );
+        })
       )}
       {message.groups.length > 0 && (
         <section

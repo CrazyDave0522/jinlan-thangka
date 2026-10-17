@@ -13,6 +13,7 @@ import type { Assistant, ImageRequest } from "@/lib/vision/types";
 import { ImageAnswer } from "./image-answer";
 import { AnswerSources, EvidenceMarker } from "./answer-sources";
 import { AnswerCopy } from "./answer-copy";
+import { blockTitle } from "@/lib/answers/presentation";
 
 type AttachmentImage = {
   src: string;
@@ -193,25 +194,20 @@ function StructuredAnswer({ message }: { message: AssistantMessage }) {
       {message.kind === "clarification" ? (
         <p className="whitespace-pre-wrap">{message.question}</p>
       ) : (
-        sections.map((section, index) => (
-          <section
-            key={index}
-            className="space-y-3"
-            aria-label={
-              section.kind === "archive" ? "数据库依据" : "通用知识补充"
-            }
-          >
-            <h2 className="font-semibold">
-              {section.kind === "archive" ? "数据库依据" : "通用知识补充"}
-            </h2>
-            {section.blocks.map((block, paragraph) => (
-              <p key={paragraph} className="whitespace-pre-wrap">
-                {block.text}
-                {block.evidenceKeys.map((key) => <EvidenceMarker key={key} evidenceKey={key} />)}
-              </p>
-            ))}
-          </section>
-        ))
+        sections.map((section, index) => {
+          const title = blockTitle(section.blocks[0], message);
+          return (
+            <section key={index} className="space-y-3" aria-label={title}>
+              {title && <h2 className="font-semibold">{title}</h2>}
+              {section.blocks.map((block, paragraph) => (
+                <p key={paragraph} className="whitespace-pre-wrap">
+                  {block.text}
+                  {block.evidenceKeys.map((key) => <EvidenceMarker key={key} evidenceKey={key} />)}
+                </p>
+              ))}
+            </section>
+          );
+        })
       )}
       {message.notices.map((notice) => (
         <p key={notice} className="text-sm text-muted-foreground">

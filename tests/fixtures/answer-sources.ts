@@ -6,9 +6,23 @@ import {
 import { canonicalImage } from "../../src/lib/vision/output";
 import { successV2 } from "./vision";
 import { visitorRequest } from "./vision-archive";
+import type { ImageRequest } from "../../src/lib/vision/types";
 
 export const sourceId = (n: number) =>
   `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
+export function generalAnswer(version: 1 | 2) {
+  const text = "您好！请告诉我您想了解的具体内容。";
+  if (version === 1) {
+    const message: AssistantMessage = { id: sourceId(9000), role: "assistant", kind: "answer", text: "", blocks: [{ kind: "general", text, evidenceKeys: [] }], references: [], notices: ["no_retrieval"] };
+    message.text = canonical(message);
+    return { ...message, structured: message };
+  }
+  const request: ImageRequest = { version: 2, turnId: "greeting", messages: [{ id: "greeting", role: "user", text: "你好", imageIds: [] }], images: [], inputs: [], observations: [], sameWorkSets: [], intent: { kind: "question" } };
+  const message = successV2(request, text, sourceId(9000)).message;
+  message.notices = ["no_retrieval"];
+  message.text = canonicalImage(message, request);
+  return { ...message, structured: message, imageContext: request };
+}
 export function sourceAnswer(
   value = "这是一条合成档案生平。",
   id = sourceId(9000),

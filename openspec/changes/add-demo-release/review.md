@@ -6,6 +6,8 @@ Prepared on 2026-10-17 on `feat/add-demo-release`, created from clean `main` at 
 
 This records proposal refinement and baseline verification. The later owner instruction to start A, implementation and fresh checks are recorded in [verification.md](verification.md); the earlier readiness observations below retain their historical scope. Neither proposal readiness nor A-stage implementation approval establishes deployment, provider activation, funded calls, data preparation or whole-release acceptance.
 
+Current milestone status (2026-10-18): local/deployed P/R checks and rollback passed, and the owner subsequently reported no issues after the desktop/mobile checklist. A is accepted at the owner-report level; exact device/browser/URL/action details are unrecorded. B and whole-change completion remain deferred/open. See [the closure record](verification.md#owner-acceptance-and-milestone-a-closure); earlier review findings below retain their original dates and scope.
+
 ## Findings and Resolutions
 
 | Finding | Resolution |

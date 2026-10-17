@@ -2,7 +2,7 @@
 
 ## Context
 
-Requirements 1–7 are implemented, archived and included in local `main`. On 2026-10-17 the owner requested continued work with an empty archive and a new branch, then approved starting milestone A after the explicit proposal approval request. The owner supplied [the existing Vercel deployment URL](https://jinlan-thangka.vercel.app/) and reported corrected configuration/redeployment; public GET/invalid-POST checks pass as recorded in [review.md](review.md). Subsequent [connected inspection](verification.md#connected-vercel-inspection) identifies the existing project, current Production revision and saved shared settings. The 2026-10-18 authenticated CLI follow-up confirms root/default build settings, the linked Production branch, captured environment names and actual 60-second chat function. The subsequent ordinary Git Preview at 37af020 and auxiliary no-service-credential Preview pass disabled HTTP/browser checks; historical Production values are not returned. The owner subsequently authorized assistant automation: P01–P04 and actual rollback passed; original P05–P06 remain not run because K7 was already captured, while independent R01–R03 now passes the missing-detail/reread/newer-draft flow. A remains open only for separately deferred native-device owner review; B inputs remain deferred; see [active results](verification.md#active-results-and-usage).
+Requirements 1–7 are implemented, archived and included in local `main`. On 2026-10-17 the owner requested continued work with an empty archive and a new branch, then approved starting milestone A after the explicit proposal approval request. The owner supplied [the existing Vercel deployment URL](https://jinlan-thangka.vercel.app/) and reported corrected configuration/redeployment; public GET/invalid-POST checks pass as recorded in [review.md](review.md). Subsequent [connected inspection](verification.md#connected-vercel-inspection) identifies the existing project, current Production revision and saved shared settings. The 2026-10-18 authenticated CLI follow-up confirms root/default build settings, the linked Production branch, captured environment names and actual 60-second chat function. The subsequent ordinary Git Preview at 37af020 and auxiliary no-service-credential Preview pass disabled HTTP/browser checks; historical Production values are not returned. The owner subsequently authorized assistant automation: P01–P04 and actual rollback passed; original P05–P06 remain not run because K7 was already captured, while independent R01–R03 now passes the missing-detail/reread/newer-draft flow. The owner subsequently accepted the presented desktop/mobile review with no reported issues, completing A at the owner-report level; exact native device/browser/URL/action metadata remain unrecorded. B inputs and whole-change completion remain deferred/open; see [active results](verification.md#active-results-and-usage).
 
 The app already implements version-2 text/image requests, page-local pictures, selective history/reread, structured retrieval, two-call model orchestration and answer-local source/copy actions. Production reference grants remain empty. Browser fixtures and the guarded reference alias are test infrastructure, not a product demo mode.
 
@@ -95,7 +95,7 @@ The default end-of-test state is both model switches false on test deployments, 
 - Valid model JSON can still invent archive facts; human semantic review remains required.
 - Synthetic source panels cannot prove real citation support; retain B's checks.
 - Emulation misses native keyboard/selection behavior; record hands-on results and reviewed limits.
-- Project identity and deployed funding are pending; local proposal/baseline work proceeds independently.
+- Existing project identity and scoped P/R funding/execution/rollback are verified; subsequent owner no-issues acceptance closes A. Real-data inputs and final whole-change acceptance remain deferred.
 
 ## Migration Plan
 
@@ -103,4 +103,4 @@ No database or visitor-Storage migration. Preserve schema/search/read access and
 
 ## Open Inputs
 
-Dashboard inspection access for the supplied Vercel URL; enabled Preview audience/window/allowance; owner hands-on observations. A-stage proposal approval is recorded in [verification.md](verification.md). Actual records/assets/domain judgments remain B inputs.
+A-stage implementation, connected inspection, scoped P/R execution/rollback and subsequent owner no-issues acceptance are recorded in [verification.md](verification.md). Owner device/browser/URL/action details are unrecorded evidence limits, not inferred test results. Actual records/assets/domain judgments and final whole-change acceptance remain later inputs.

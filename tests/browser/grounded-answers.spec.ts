@@ -17,7 +17,8 @@ for (const viewport of viewports) test(`real orchestration and evidence layout a
   await expect(general.locator("p")).toHaveCount(2);
   await expect(general.getByText("唐卡艺术可从题材、构图与设色等方面欣赏。", {exact:true})).toBeVisible();
   await expect(general.getByText("同一题材可以采用不同风格，观察时可分别比较。", {exact:true})).toBeVisible();
-  await expect(page.getByRole("region", {name:"依据摘要"})).toContainText("测试画师 · 生平");
+  await page.getByRole("button", {name:"查看来源"}).click();
+  await expect(page.getByRole("region", {name:"本条回答使用的依据"})).toContainText("测试画师 · 生平");
   await expect(page.getByText("部分依据仅为数据库记录，尚无对应字段的外部来源确认。")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const send = await page.getByRole("button", {name:"发送消息"}).boundingBox();

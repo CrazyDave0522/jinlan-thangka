@@ -44,6 +44,8 @@ export function ChatConversation() {
   const active = useRef<Attempt | null>(null);
   const region = useRef<HTMLDivElement>(null);
   const follow = useRef(true);
+  const reading = useRef(false);
+  const userScrolling = useRef(false);
   const composing = useRef(false);
   const compositionEnd = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -83,6 +85,8 @@ export function ChatConversation() {
     };
     active.current = attempt;
     follow.current = true;
+    reading.current = false;
+    userScrolling.current = false;
     update(
       history.current.some((item) => item.user.id === turn.user.id)
         ? history.current.map((item) =>
@@ -209,7 +213,7 @@ export function ChatConversation() {
   }
 
   function trackScroll() {
-    if (!region.current) return;
+    if (!region.current || (reading.current && !userScrolling.current)) return;
     const root = getComputedStyle(document.documentElement);
     const spacing = root.getPropertyValue("--spacing").trim();
     const unit =
@@ -220,6 +224,7 @@ export function ChatConversation() {
         region.current.clientHeight -
         region.current.scrollTop <=
       12 * unit;
+    reading.current = !follow.current;
   }
 
   function removeImage(id: string) {
@@ -272,6 +277,8 @@ export function ChatConversation() {
       ])}
       regionRef={region}
       onScroll={trackScroll}
+      onReadAnswer={() => { reading.current = true; follow.current = false; userScrolling.current = false; }}
+      onScrollIntent={() => { userScrolling.current = true; }}
       composer={{
         draft,
         onChange: (value) => {

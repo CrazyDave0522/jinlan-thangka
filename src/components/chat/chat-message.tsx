@@ -3,16 +3,16 @@
 import Image from "next/image";
 import type { AnswerBlock, AssistantMessage } from "@/lib/answers/contracts";
 import {
-  FIELD_LABELS,
   NOTICE_TEXT,
-  fieldValueLabel,
 } from "@/lib/answers/labels";
 import { useState, type ReactNode } from "react";
-import { BookOpen, Bot, Copy } from "lucide-react";
+import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Assistant, ImageRequest } from "@/lib/vision/types";
 import { ImageAnswer } from "./image-answer";
+import { AnswerSources, EvidenceMarker } from "./answer-sources";
+import { AnswerCopy } from "./answer-copy";
 
 type AttachmentImage = {
   src: string;
@@ -125,7 +125,6 @@ export function Message({
     );
   }
 
-  const unavailableId = `answer-actions-${message.id}`;
   return (
     <li
       className="flex min-w-0 items-start gap-2 sm:gap-4"
@@ -141,6 +140,7 @@ export function Message({
         <p className="text-sm font-medium">雪域金澜</p>
         <Card>
           <CardContent className="space-y-5 text-base leading-7 wrap-anywhere">
+            <AnswerSources answer={message}>
             {message.structured ? (
               "observations" in message.structured && message.imageContext ? (
                 <ImageAnswer
@@ -169,42 +169,9 @@ export function Message({
                 </p>
               </section>
             )}
-            <div className="space-y-2 border-t pt-3">
-              {message.sourceLabel && (
-                <div className="flex min-w-0 items-center gap-2 border-b pb-3 text-sm text-muted-foreground">
-                  <BookOpen className="size-5 shrink-0" aria-hidden="true" />
-                  <span className="min-w-0 flex-1">{message.sourceLabel}</span>
-                  <Button
-                    disabled
-                    variant="ghost"
-                    size="sm"
-                    aria-label="查看来源"
-                    aria-describedby={unavailableId}
-                  >
-                    查看来源
-                  </Button>
-                </div>
-              )}
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  disabled
-                  variant="ghost"
-                  size="icon"
-                  aria-label="复制回答"
-                  aria-describedby={unavailableId}
-                >
-                  <Copy aria-hidden="true" />
-                </Button>
-                <p
-                  id={unavailableId}
-                  className="text-xs leading-5 text-muted-foreground"
-                >
-                  {message.sourceLabel
-                    ? "来源查看与复制功能暂未开放。"
-                    : "复制功能暂未开放。"}
-                </p>
-              </div>
-            </div>
+            {message.sourceLabel && <p className="text-sm text-muted-foreground">{message.sourceLabel}</p>}
+            </AnswerSources>
+            <AnswerCopy answer={message} />
           </CardContent>
         </Card>
         {footer}
@@ -240,49 +207,11 @@ function StructuredAnswer({ message }: { message: AssistantMessage }) {
             {section.blocks.map((block, paragraph) => (
               <p key={paragraph} className="whitespace-pre-wrap">
                 {block.text}
-                {block.evidenceKeys.map((key) => (
-                  <span
-                    key={key}
-                    className="ml-1 text-xs text-muted-foreground"
-                  >
-                    [{key}]
-                  </span>
-                ))}
+                {block.evidenceKeys.map((key) => <EvidenceMarker key={key} evidenceKey={key} />)}
               </p>
             ))}
           </section>
         ))
-      )}
-      {message.references.length > 0 && (
-        <section
-          aria-label="依据摘要"
-          className="space-y-3 border-t pt-3 text-sm"
-        >
-          <h2 className="font-semibold">依据摘要</h2>
-          {message.references.map((ref) => (
-            <div key={ref.key} className="space-y-1">
-              <p>
-                [{ref.key}] {ref.label} · {FIELD_LABELS[ref.field]}
-              </p>
-              <p className="text-muted-foreground">
-                {fieldValueLabel(ref.field, ref.value)}
-              </p>
-              {ref.sources.length ? (
-                ref.sources.map((source) => (
-                  <p key={source.linkId} className="text-muted-foreground">
-                    来源：{source.title || "未记录标题"}
-                    {source.locator ? ` · ${source.locator}` : ""}
-                    {!source.supportedField ? "（未限定支持字段）" : ""}
-                  </p>
-                ))
-              ) : (
-                <p className="text-muted-foreground">
-                  仅数据库记录，暂无字段来源。
-                </p>
-              )}
-            </div>
-          ))}
-        </section>
       )}
       {message.notices.map((notice) => (
         <p key={notice} className="text-sm text-muted-foreground">

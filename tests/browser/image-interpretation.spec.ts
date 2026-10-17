@@ -81,7 +81,8 @@ test("ordinary-photo verification uses permitted references and keeps uncertain 
     expect(body.message.groups[0].identity.status).toBe(marker === "ordinary" ? "identified" : "candidates");
     expect(body.message.comparisons).toHaveLength(2); expect(body.message.referenceImages).toHaveLength(2);
     expect(JSON.stringify(body)).not.toContain("storage/v1"); expect(JSON.stringify(body)).not.toContain("reviewedBy");
-    await expect(page.getByRole("region", { name: "档案参考图核对" })).toBeVisible();
+    await page.getByRole("button", { name: "查看来源" }).click();
+    await expect(page.getByRole("region", { name: "本条回答使用的依据" })).toContainText("档案参考图核对");
     expect(await page.getByRole("region", { name: "图片与档案" }).innerText()).not.toMatch(/[0-9a-f]{8}-[0-9a-f-]{27}/);
     await expect(page.locator('img[src^="https://archive.fixture.test"]')).toHaveCount(0);
     await layout(page);

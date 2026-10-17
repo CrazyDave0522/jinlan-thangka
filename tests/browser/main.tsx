@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { ChatInterface } from "../../src/components/chat/chat-interface";
 import type { ChatMessage } from "../../src/components/chat/chat-message";
 import "./styles.css";
+import { imageSourceAnswer, sourceAnswer } from "../fixtures/answer-sources";
 
 const pixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j8l8AAAAASUVORK5CYII=";
 const exchange: ChatMessage[] = [
@@ -13,6 +14,10 @@ const mode = params.get("mode");
 let messages: ChatMessage[] = [];
 if (mode === "populated") messages = exchange;
 if (mode === "long") messages = Array.from({ length: 20 }, (_, index) => exchange.map((message) => ({ ...message, id: `${message.id}-${index}`, text: `${message.text}\n${"长内容".repeat(100)}${"LongToken".repeat(60)}` }))).flat();
+if (mode === "sources") {
+  const answer = imageSourceAnswer(true);
+  messages = [{ id: "source-pictures", role: "user", text: "合成边界验证", images: answer.imageContext.images.map((image) => ({ src: `${pixel}#${image.id}`, alt: `图片 ${image.displayIndex}`, width: 1, height: 1, displayIndex: image.displayIndex, anchor: `image-${image.id}` })) }, answer, sourceAnswer()];
+}
 if (mode === "broken") messages = [{ ...exchange[0], id: "broken", role: "user", text: "图片失败后仍保留的问题", image: { src: "/missing-test-image.png", alt: "无法加载的测试图片", width: 180, height: 240 } }];
 
 createRoot(document.getElementById("root")!).render(<ChatInterface messages={messages} />);

@@ -141,20 +141,14 @@ describe("conversation presentation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps source and copy actions disabled and explained", async () => {
+  it("copies supplied content without inventing structured sources", async () => {
     const user = userEvent.setup();
-    const clipboard = vi.spyOn(navigator.clipboard, "writeText");
+    const clipboard = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     render(<ChatInterface messages={messages} />);
-    const source = screen.getByRole("button", { name: "查看来源" });
-    const copy = screen.getByRole("button", { name: "复制回答" });
-    expect(source).toBeDisabled();
-    expect(copy).toBeDisabled();
-    expect(source).toHaveAccessibleDescription("来源查看与复制功能暂未开放。");
-    // Native disabled behavior is asserted; forcing pointer events would bypass the UI contract.
-    expect(clipboard).not.toHaveBeenCalled();
-    await user.tab();
-    expect(source).not.toHaveFocus();
-    expect(copy).not.toHaveFocus();
+    expect(screen.queryByRole("button", { name: "查看来源" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "复制回答" }));
+    expect(clipboard).toHaveBeenCalledWith("无法确认具体作品。\n\n数据库依据\n测试记录未提供作者。\n\n通用知识补充\n以下为通用艺术知识。");
+    expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
   });
 });
 
@@ -261,7 +255,7 @@ describe("structured answer section headings", () => {
       within(answers[0])
         .getAllByRole("heading", { level: 2 })
         .map((h) => h.textContent),
-    ).toEqual(["通用知识补充", "数据库依据", "通用知识补充", "依据摘要"]);
+    ).toEqual(["通用知识补充", "数据库依据", "通用知识补充"]);
     const evidence = within(answers[0]).getByRole("region", {
       name: "数据库依据",
     });
@@ -271,8 +265,9 @@ describe("structured answer section headings", () => {
       "档案中的姓名是测试画师。[E1]",
       "该记录采用测试画师这一展示名称。[E1]",
     ]);
+    fireEvent.click(within(answers[0]).getByRole("button", { name: "查看来源" }));
     expect(
-      within(answers[0]).getByRole("region", { name: "依据摘要" }),
+      within(answers[0]).getByRole("region", { name: "本条回答使用的依据" }),
     ).toHaveTextContent("[E1] 测试画师 · 姓名");
     expect(
       within(answers[1]).getAllByRole("heading", { name: "通用知识补充" }),

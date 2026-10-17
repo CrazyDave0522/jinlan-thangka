@@ -4,25 +4,12 @@ import type {
   Assistant,
   Block,
   ImageRequest,
-  Reason,
 } from "@/lib/vision/types";
-import { FIELD_LABELS, fieldValueLabel } from "@/lib/answers/labels";
+import { REASON_COPY, observationLines, relevantObservations } from "@/lib/answers/presentation";
+import { EvidenceMarker } from "./answer-sources";
+import { useAnswerReading } from "./answer-actions-context";
 import { NOTICE_COPY } from "@/lib/vision/output";
 
-const REASON_COPY: Record<Reason, string> = {
-  no_clue: "缺少可用的检索线索",
-  record_unverified: "相关记录尚未核验",
-  source_support_missing: "缺少对应字段的来源支持",
-  identifier_unclear: "收藏机构或藏品编号的依据不完整",
-  identifier_mismatch: "图片编号与记录不一致",
-  identity_conflict: "对应依据存在冲突",
-  candidate_limit: "候选范围尚不完整",
-  references_missing: "缺少可核对的参考图",
-  reference_not_authorized: "参考图尚无可用的处理许可",
-  reference_limit: "本次参考图核对范围有限",
-  visual_uncertain: "图片对应关系仍不确定",
-  insufficient_features: "可确认的独特特征不足",
-};
 export function ImageLink({
   id,
   request,
@@ -47,6 +34,7 @@ export function ImageAnswer({
   message: Assistant;
   request: ImageRequest;
 }) {
+  const read = useAnswerReading();
   const key = (block: Block) =>
     block.kind === "visual"
       ? block.observationIds.every((id) =>
@@ -95,11 +83,7 @@ export function ImageAnswer({
             {s.blocks.map((b, p) => (
               <p key={p} className="whitespace-pre-wrap">
                 {b.text}
-                {b.evidenceKeys.map((k) => (
-                  <span key={k} className="ml-1 text-xs text-muted-foreground">
-                    [{k}]
-                  </span>
-                ))}
+                {b.evidenceKeys.map((k) => <EvidenceMarker key={k} evidenceKey={k} />)}
                 {b.observationIds.map((id) => (
                   <ImageLink
                     key={id}
@@ -131,6 +115,9 @@ export function ImageAnswer({
                     ? "未找到匹配档案记录"
                     : "已检索到相关档案记录"}
               </p>
+              {g.candidateLimitReached && <p className="text-muted-foreground">本组检索候选已达上限，结果不代表完整档案。</p>}
+              {g.identity.status === "not_requested" && <p className="text-muted-foreground">本次未请求确认具体作品。</p>}
+              {g.candidates.length > 0 && <details className="text-xs text-muted-foreground" onToggle={(event) => { if (event.currentTarget.open) read(); }}><summary className="cursor-pointer">候选档案标识</summary>{g.candidates.map((candidate) => <p key={candidate.artworkId}>候选档案：{candidate.label} · {candidate.artworkId}</p>)}</details>}
               {g.identity.status === "identified" ? (
                 <p>
                   档案对应：
@@ -154,14 +141,7 @@ export function ImageAnswer({
                   {[
                     ...g.identity.evidenceKeys,
                     ...g.identity.referenceKeys,
-                  ].map((k) => (
-                    <span
-                      key={k}
-                      className="ml-1 text-xs text-muted-foreground"
-                    >
-                      [{k}]
-                    </span>
-                  ))}
+                  ].map((k) => <EvidenceMarker key={k} evidenceKey={k} />)}
                 </p>
               ) : (
                 <>
@@ -187,53 +167,13 @@ export function ImageAnswer({
           ))}
         </section>
       )}
-      {message.references.length > 0 && (
-        <section
-          aria-label="依据摘要"
-          className="space-y-3 border-t pt-3 text-sm"
-        >
-          <h2 className="font-semibold">依据摘要</h2>
-          {message.references.map((r) => (
-            <div key={r.key} className="space-y-1">
-              <p>
-                [{r.key}] {r.label} · {FIELD_LABELS[r.field]}
-              </p>
-              <p className="text-muted-foreground">
-                {fieldValueLabel(r.field, r.value)}
-              </p>
-              {r.sources.length ? (
-                r.sources.map((s) => (
-                  <p key={s.linkId} className="text-muted-foreground">
-                    来源：{s.title || "未记录标题"}
-                    {s.locator ? ` · ${s.locator}` : ""}
-                    {!s.supportedField ? "（未限定支持字段）" : ""}
-                  </p>
-                ))
-              ) : (
-                <p className="text-muted-foreground">
-                  仅数据库记录，暂无字段来源。
-                </p>
-              )}
-            </div>
-          ))}
-        </section>
-      )}
-      {message.referenceImages.length > 0 && (
-        <section className="space-y-1 text-sm" aria-label="档案参考图核对">
-          <h2 className="font-semibold">档案参考图核对</h2>
-          {message.referenceImages.map((r) => (
-            <p key={r.key}>
-              [{r.key}]{" "}
-              {
-                message.groups
-                  .flatMap((g) => g.candidates)
-                  .find((c) => c.artworkId === r.artworkId)!.label
-              }{" "}
-              · 已使用获准的档案参考图
-            </p>
-          ))}
-        </section>
-      )}
+      {relevantObservations(message, request).map((observation) => (
+        <details key={observation.id} className="space-y-2 rounded-lg border p-3 text-sm" onToggle={(event) => { if (event.currentTarget.open) read(); }}>
+          <summary className="cursor-pointer font-medium">图片 {request.images.find((i) => i.id === observation.imageId)!.displayIndex} · 观察说明</summary>
+          {observationLines(observation, message.observations.some((o) => o.id === observation.id)).map((line, n) => <p key={n} className="whitespace-pre-wrap">{line}</p>)}
+        </details>
+      ))}
+      {message.observations.flatMap((observation) => observation.limitations.filter((l) => l.affectsIdentity).map((limitation, n) => <p key={`${observation.id}-${n}`} className="text-sm text-muted-foreground">图片 {request.images.find((i) => i.id === observation.imageId)!.displayIndex} · 作品对应限制：{limitation.text}</p>))}
       {message.notices.map((n) => (
         <p key={n} className="text-sm text-muted-foreground">
           {NOTICE_COPY[n]}

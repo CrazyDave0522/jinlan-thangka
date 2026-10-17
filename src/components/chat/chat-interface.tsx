@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Message, type ChatMessage } from "./chat-message";
 import type { LocalImage } from "@/lib/chat/image-policy";
 import "./chat-interface.css";
+import { AnswerActionsProvider } from "./answer-actions-context";
 
 const copyrightYear = new Date().getFullYear();
 
@@ -33,14 +34,19 @@ export function ChatInterface({
   regionRef,
   onScroll,
   messageFooter,
+  onReadAnswer,
+  onScrollIntent,
 }: {
   messages?: ChatMessage[];
   composer?: Composer;
   regionRef?: Ref<HTMLDivElement>;
   onScroll?: () => void;
+  onReadAnswer?: () => void;
+  onScrollIntent?: () => void;
   messageFooter?: (id: string) => ReactNode;
 }) {
   return (
+    <AnswerActionsProvider onRead={onReadAnswer}>
     <div className="chat-shell">
       <header className="flex shrink-0 items-center gap-4 border-b px-4 py-2 sm:px-8 lg:px-12">
         <div className="chat-brand">
@@ -60,6 +66,16 @@ export function ChatInterface({
         <div
           ref={regionRef}
           onScroll={onScroll}
+          onWheel={onScrollIntent}
+          onTouchStart={onScrollIntent}
+          onPointerDown={(event) => { if (event.target === event.currentTarget) onScrollIntent?.(); }}
+          onKeyDown={(event) => {
+            if (event.defaultPrevented || !["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+            const target = event.target as HTMLElement;
+            if (target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+            if (event.key === " " && target.closest('button, summary, [role="button"]')) return;
+            onScrollIntent?.();
+          }}
           className="chat-messages"
           role="region"
           aria-label="对话内容"
@@ -262,5 +278,6 @@ export function ChatInterface({
         <p>AI 生成内容仅供参考，请结合来源核实。</p>
       </footer>
     </div>
+    </AnswerActionsProvider>
   );
 }

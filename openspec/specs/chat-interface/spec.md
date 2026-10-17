@@ -1,9 +1,9 @@
 # chat-interface Specification
 
 ## Purpose
-Define the Jinlan Thangka conversation presentation layer: an empty welcome page, supplied-message rendering, an editable local composer, shared visual styling, and mainstream responsive behavior. Business submission, uploads, AI generation, source inspection, and copying are owned by subsequent changes.
+Define the Jinlan Thangka conversation presentation layer: an empty welcome page, supplied-message rendering, an editable local composer, shared visual styling, and mainstream responsive behavior. Business submission, uploads and AI generation follow their respective capabilities. Source inspection and copying are implemented by [answer-sources](../answer-sources/spec.md), with the corresponding presentation requirements below.
 
-This capability is implemented and verified locally. The owner requested archival on 2026-10-16 before deployment; this specification does not assert an online release. See the [archived verification record](../../changes/archive/2026-10-16-add-chat-interface/verification.md).
+This capability is implemented and verified locally. The owner requested archival on 2026-10-16 before deployment; this specification does not assert an online release. See the [archived verification record](../../changes/archive/2026-10-16-add-chat-interface/verification.md). The source/copy presentation update was archived at the owner's request on 2026-10-17 after local implementation checks; its [verification](../../changes/archive/2026-10-17-add-answer-sources/verification.md) retains outstanding acceptance and deployment limits.
 
 ## Requirements
 
@@ -68,7 +68,7 @@ The system SHALL provide an editable `消息内容` field with the established v
 
 - **WHEN** image selection is available in the conversation composer
 - **THEN** the `上传图片` control opens the supported picker unless current draft preparation temporarily locks selection
-- **AND** obsolete sending/upload-disabled notices are absent, contextual image processing/lifetime guidance appears with attachments, and source/copy actions remain unavailable.
+- **AND** obsolete sending/upload-disabled notices are absent, contextual image processing/lifetime guidance appears with attachments, and answer source/copy actions follow the answer-sources capability.
 
 #### Scenario: Disable sending when appropriate
 
@@ -88,15 +88,21 @@ The system SHALL provide an editable `消息内容` field with the established v
 - **THEN** the preview panel is limited to 40 shared spacing units with internal vertical scrolling
 - **AND** the message region, editable text, send/image controls and centered mobile footer remain reachable without page overflow.
 
-### Requirement: Source and copy action placeholders
+### Requirement: Source and copy action presentation
 
-The system SHALL reserve the answer source/action areas shown in the reference without implementing source inspection or copying. Rendered action placeholders SHALL have accessible Chinese names, disabled semantics, and a visible explanation that those actions are unavailable.
+The system SHALL provide operable, accessible Chinese answer source/copy actions following answer-sources, within the established answer card and shared visual system.
 
 #### Scenario: Verify supplied answer actions
 
-- **WHEN** a message component is supplied with answer and source data during a component test or development-only visual verification
-- **THEN** its source area and copy action are visibly unavailable and disabled
-- **AND** activating them cannot expand sources, navigate, or write to the clipboard.
+- **WHEN** an accepted assistant answer has copyable content and delivered evidence entries
+- **THEN** copying is enabled, the source control opens matching inline details and evidence markers support exact-target navigation
+- **AND** obsolete unavailable-action notices are absent; source-free answers omit the source control while retaining eligible copying.
+
+#### Scenario: Preserve the empty landing state
+
+- **WHEN** the product opens or reloads with no conversation messages
+- **THEN** no source/copy controls, example answers or fabricated source entries are preloaded
+- **AND** the existing welcome, composer and footer behavior remains unchanged.
 
 ### Requirement: Responsive and accessible presentation
 

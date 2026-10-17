@@ -8,7 +8,7 @@ const viewports = [
 
 async function verifyLayout(page: Page) {
   const metrics = await page.evaluate(() => {
-    const field = document.querySelector("textarea")!.getBoundingClientRect();
+    const field = document.querySelector('[aria-label="消息内容"]')!.getBoundingClientRect();
     const composer = document.querySelector('[aria-label="消息输入"]')!.getBoundingClientRect();
     const messages = document.querySelector('[aria-label="对话内容"]')!.getBoundingClientRect();
     const footer = document.querySelector("footer")!.getBoundingClientRect();
@@ -76,10 +76,10 @@ for (const viewport of viewports) {
     await expect(page.getByRole("listitem")).toHaveCount(40);
     await verifyLayout(page);
     const region = page.getByRole("region", { name: "对话内容" });
-    const before = await page.getByRole("textbox").boundingBox();
+    const before = await page.getByRole("textbox", { name: "消息内容" }).boundingBox();
     const scrolled = await region.evaluate((element) => { element.scrollTop = element.scrollHeight; return element.scrollTop; });
     expect(scrolled).toBeGreaterThan(0);
-    expect(await page.getByRole("textbox").boundingBox()).toEqual(before);
+    expect(await page.getByRole("textbox", { name: "消息内容" }).boundingBox()).toEqual(before);
     const bounds = await region.boundingBox();
     const last = await page.getByRole("listitem").last().boundingBox();
     expect(last!.y + last!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height + 1);
@@ -96,9 +96,8 @@ test("components resize through intermediate widths and reduced height", async (
   }
   await page.setViewportSize({ width: 844, height: 390 });
   await verifyLayout(page);
-  const source = page.getByRole("button", { name: "查看来源" });
-  await expect(source).toBeDisabled();
-  await expect(page.getByRole("button", { name: "复制回答" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "查看来源" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "复制回答" })).toBeEnabled();
   await page.setViewportSize({ width: 1486, height: 1060 });
   await page.screenshot({ path: "test-results/populated-desktop.png" });
   await page.setViewportSize({ width: 390, height: 844 });

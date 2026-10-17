@@ -1,11 +1,37 @@
 import { syntheticEnvironment } from "./settings.mjs";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { Server } from "node:http";
+import { fileURLToPath } from "node:url";
 for (const [key, value] of Object.entries(syntheticEnvironment)) {
   if (["DEEPSEEK_ENABLED", "DEEPSEEK_VISION_ENABLED"].includes(key)) continue;
   if (process.env[key] !== value) throw new Error("Unsafe browser fixture configuration");
 }
 if (!["true", "false"].includes(process.env.DEEPSEEK_ENABLED)) throw new Error("Missing fixture enablement");
 if (!["true", "false"].includes(process.env.DEEPSEEK_VISION_ENABLED)) throw new Error("Missing fixture vision enablement");
+// Test-only HTTP scope keeps parallel browser cases out of each other's counters.
+const auditScope = new AsyncLocalStorage();
+const auditDirectory = fileURLToPath(new URL("../../../test-results/source-audit/", import.meta.url));
+const auditCounters = new Map();
+function record(kind) {
+  const id = auditScope.getStore()?.id;
+  if (!id) return;
+  const counts = auditCounters.get(id) ?? { chat: 0, model: 0, archive: 0, storage: 0 };
+  counts[kind]++;
+  auditCounters.set(id, counts);
+  mkdirSync(auditDirectory, { recursive: true });
+  writeFileSync(`${auditDirectory}/${id}.json`, JSON.stringify(counts));
+}
+const originalEmit = Server.prototype.emit;
+Server.prototype.emit = function (event, ...args) {
+  if (event !== "request") return originalEmit.call(this, event, ...args);
+  const request = args[0];
+  const header = request.headers["x-jinlan-test-case"];
+  return auditScope.run({ id: typeof header === "string" && /^[a-z0-9-]{1,64}$/.test(header) ? header : null, sources: false, revised: false }, () => {
+    if (request.url.split("?")[0] === "/api/chat") record("chat");
+    return originalEmit.call(this, event, ...args);
+  });
+};
 const artist = JSON.parse(readFileSync(new URL("./artist.json", import.meta.url), "utf8"));
 const vision = JSON.parse(readFileSync(new URL("./vision-archive.json", import.meta.url), "utf8"));
 const artworkId = (n) => `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
@@ -79,11 +105,14 @@ globalThis.fetch = async (input, options = {}) => {
   if (["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)) return originalFetch(input, options);
   if (url.origin === "https://api.deepseek.com" && url.pathname === "/chat/completions") {
     if (process.env.DEEPSEEK_ENABLED !== "true" || new Headers(options.headers).get("Authorization") !== `Bearer ${syntheticEnvironment.DEEPSEEK_API_KEY}`) throw new Error("Unexpected fixture provider access");
+    record("model");
     const payload = JSON.parse(options.body);
     if (payload.stream !== false || payload.thinking?.type !== "disabled" || payload.model !== "deepseek-flash" || payload.temperature !== 0) throw new Error("Invalid fixture provider options");
     const content = payload.messages[1].content;
     const data = JSON.parse(typeof content === "string" ? content : content.find((p) => p.type === "text").text);
     const question = data.context.at(-1).text;
+    const audit = auditScope.getStore();
+    if (audit) { audit.sources = question.includes("[sources:"); audit.revised = question.includes("[sources:revised]"); }
     if (data.protocol === 2) return visionCompletion(payload, data, question);
     if (question.includes("[fixture:busy]")) return reply({}, 429);
     if (question.includes("[fixture:credit]")) return reply({}, 402);
@@ -99,19 +128,21 @@ globalThis.fetch = async (input, options = {}) => {
     if (question.includes("[fixture:invalid]")) return completion({ blocks: [{ kind: "archive", text: "伪造引用", evidenceKeys: ["E999999"] }] });
     const fact = data.catalogue.find((f) => f.field === "biography");
     return completion({ blocks: [
-      ...(fact ? [{ kind: "archive", text: "该画师的档案生平记载：这是用于浏览器验证的合成生平。", evidenceKeys: [fact.key] }] : []),
+      ...(fact ? [{ kind: "archive", text: `该画师的档案生平记载：${fact.value}`, evidenceKeys: [fact.key] }] : []),
       { kind: "general", text: "唐卡艺术可从题材、构图与设色等方面欣赏。", evidenceKeys: [] },
       { kind: "general", text: "同一题材可以采用不同风格，观察时可分别比较。", evidenceKeys: [] },
     ] });
   }
   if (url.origin === syntheticEnvironment.NEXT_PUBLIC_SUPABASE_URL) {
     if (url.pathname.startsWith("/storage/")) {
+      record("storage");
       const imageId = url.pathname.split("/").at(-1).replace(/\.png$/, "");
       if (url.pathname !== `/storage/v1/object/fixtures/${imageId}.png` || url.search || !vision.bytes[imageId] || new Headers(options.headers).get("apikey") !== syntheticEnvironment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) throw new Error("Unexpected fixture Storage access");
       if (imageId === artworkId(103)) return reply({}, 403);
       if (imageId === artworkId(104)) return reply({}, 503);
       return new Response(Buffer.from(vision.bytes[imageId], "base64"), { headers: { "Content-Type": "image/png" } });
     }
+    record("archive");
     if (url.pathname.endsWith("/rpc/search_archive_candidates")) {
       const data = JSON.parse(options.body);
       if (data.p_entity === "artwork") {
@@ -128,6 +159,13 @@ globalThis.fetch = async (input, options = {}) => {
       return reply(data.p_filters.some((f) => f.value === "无匹配") ? [] : [{ id: artist.id, rank: 0, matches: [{ field: "name", column: "display_name", mode: "exact" }] }]);
     }
     const table = url.pathname.split("/").at(-1);
+    const audit = auditScope.getStore();
+    if (audit?.sources) {
+      const revised = audit.revised;
+      if (table === "artists") return reply([{ ...artist, biography: revised ? "这是更新后的合成生平。" : artist.biography }]);
+      if (table === "artist_sources") return reply([{ id: artworkId(7002), artist_id: artist.id, source_id: artworkId(7001), supported_field: "biography", locator: revised ? "第 9 页" : "第 3 页", evidence_notes: null, created_at: artist.created_at, updated_at: artist.updated_at }]);
+      if (table === "sources") return reply([{ ...vision.sources[0], id: artworkId(7001), title: revised ? "修订合成资料" : "原始合成资料" }]);
+    }
     if (["artworks", "images", "artwork_sources", "sources"].includes(table)) {
       const field = table === "images" || table === "artwork_sources" ? "artwork_id" : "id";
       const filter = url.searchParams.get(field) ?? "";

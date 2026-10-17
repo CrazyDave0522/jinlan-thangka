@@ -4,6 +4,7 @@
         "jinlan",
         "shadcn",
         "thangka",
-        "transactionally"
+        "transactionally",
+        "unstub"
     ]
 }

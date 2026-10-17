@@ -7,7 +7,7 @@ afterEach(() => vi.unstubAllGlobals());
 it("returns unavailable without contacting any external service", async () => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
-  const response = await POST(new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+  const response = await POST(new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json", "X-Chat-Protocol": "2" }, body: JSON.stringify({
     turnId: "second", messages: [{ id: "first", role: "user", text: "问题一" }, { id: "second", role: "user", text: "问题二" }],
   }) }));
   expect(response.status).toBe(503);

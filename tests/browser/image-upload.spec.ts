@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
-import type { ChatRequest } from "../../src/lib/chat/conversation";
+import type { ImageRequest as ChatRequest } from "../../src/lib/vision/types";
 
 const home = "http://127.0.0.1:3100";
 const picker = (page: Page) => page.getByLabel("选择图片", { exact: true });
@@ -41,13 +41,13 @@ for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     if ([390, 1366].includes(viewport.width)) await page.screenshot({ path: `test-results/image-draft-${viewport.width}.png` });
     await send(page).click();
-    await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toHaveText("图片解读暂未接入，请先发送纯文字问题。");
+    await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toHaveText("图片理解服务暂不可用，请稍后重新提问。");
     await expect(page.getByRole("listitem", { name: "用户消息" })).toHaveCount(1);
     const submitted = page.getByRole("listitem", { name: "用户消息" });
     await expect(submitted.getByRole("img")).toHaveCount(4);
     for (const image of await submitted.getByRole("img").all()) expect(await image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
     expect(requests).toHaveLength(1);
-    const images = requests[0].messages[0].images!;
+    const images = requests[0].inputs;
     expect(images).toHaveLength(4);
     for (const [index, image] of images.entries()) {
       const meta = await sharp(Buffer.from(image.data, "base64")).metadata();
@@ -60,7 +60,8 @@ for (const viewport of viewports) {
     await send(page).click();
     await expect(page.getByRole("region", { name: "对话内容" }).getByRole("status").last()).toHaveText("AI 服务暂未开启，暂时无法回复。");
     await expect(page.getByRole("region", { name: "对话内容" }).getByRole("status")).toHaveCount(1);
-    expect(requests[1].messages[0].images).toBeUndefined();
+    expect(requests[1].inputs).toEqual([]);
+    expect(requests[1].images).toEqual([]);
     expect(requests[1].messages[0].text).toBe("比较以上图片");
     if ([390, 1366].includes(viewport.width)) await page.screenshot({ path: `test-results/image-submitted-${viewport.width}.png` });
     await page.reload();
@@ -98,13 +99,13 @@ test("real worker applies JPEG orientation, downscales and preserves PNG alpha",
   const request = page.waitForRequest((req) => req.url().endsWith("/api/chat"));
   await send(page).click();
   const body = (await request).postDataJSON() as ChatRequest;
-  const images = body.messages[0].images!;
-  expect([images[0].width, images[0].height]).toEqual([800, 1600]);
+  const images = body.inputs;
+  expect([body.images[0].width, body.images[0].height]).toEqual([800, 1600]);
   const decoded = await sharp(Buffer.from(images[1].data, "base64")).raw().toBuffer({ resolveWithObject: true });
   expect(decoded.info.channels).toBe(4);
   expect(decoded.data[3]).toBeGreaterThan(0);
   expect(decoded.data[3]).toBeLessThan(255);
-  await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toContainText("图片解读暂未接入");
+  await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toContainText("图片理解服务暂不可用");
 });
 
 test("image retry reuses identical bytes while preserving a pending next image draft", async ({ page }) => {
@@ -142,7 +143,7 @@ test("oversized text preserves the draft after an unavailable image turn", async
   await page.goto(home);
   await select(page, await files(1));
   await send(page).click();
-  await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toContainText("图片解读暂未接入");
+  await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toContainText("图片理解服务暂不可用");
   const text = "文".repeat(1_333_334);
   await draft(page).fill(text);
   await send(page).click();
@@ -181,7 +182,7 @@ test("four previews keep controls reachable at reduced heights and image-only lo
     expect(layout.footer).toBe(true);
   }
   await send(page).click();
-  await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toContainText("图片解读暂未接入");
+  await expect(page.getByRole("region", { name: "对话内容" }).getByRole("alert")).toContainText("图片理解服务暂不可用");
   const image = page.getByRole("listitem", { name: "用户消息" }).getByRole("img").first();
   await image.evaluate((element) => element.dispatchEvent(new Event("error")));
   await expect(page.getByText("图片 1：图片暂时无法显示")).toBeVisible();

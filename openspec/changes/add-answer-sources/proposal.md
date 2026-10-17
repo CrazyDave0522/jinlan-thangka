@@ -21,7 +21,7 @@ Users need to inspect the evidence behind an answer through the source presentat
 
 ## Dependencies
 
-add-chat-interface, add-thangka-retrieval, and add-grounded-answers. Source identifiers and claim-evidence associations originate upstream, rather than being invented in the UI.
+add-chat-interface, add-thangka-retrieval, and add-grounded-answers. Source identifiers and claim-evidence associations originate upstream, rather than being invented in the UI. The implemented [image-interpretation design](../archive/2026-10-17-add-image-interpretation/design.md) fixes selected-image, observation and image-to-record contracts with separate visual blocks; preserve its stable image labels, identity evidence and visual/archive/general distinction when refining source inspection. Visitor image references identify inputs; curated comparison references identify actual archive image/work rows and their permission provenance. Neither is a model-created bibliographic citation. Preserve observation uncertainty and actual identified/candidate state when rendering sources; do not imply that a reference image by itself proves identity. This dependency note does not approve source-UI implementation.
 
 ## Deferred Detail
 

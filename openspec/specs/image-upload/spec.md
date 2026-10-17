@@ -19,7 +19,7 @@ The system SHALL accept an ordered set of user-selected image attachments, optio
 
 - **WHEN** a user submits two or three valid images and a question about their differences
 - **THEN** one user turn contains the complete ordered set and the question with consistent image labels
-- **AND** the server returns image_understanding_unavailable without a provider call until interpretation is integrated, preserving visible attachments and the question.
+- **AND** disabled vision returns image_understanding_unavailable without a provider call; enabled processing follows the image-interpretation capability while preserving visible attachments and the question.
 
 #### Scenario: Submit images without text
 
@@ -29,7 +29,7 @@ The system SHALL accept an ordered set of user-selected image attachments, optio
 #### Scenario: Keep valid image submission available during text-only generation
 
 - **WHEN** the user submits prepared images within the existing count/size/context limits
-- **THEN** client preflight does not block the turn merely because visual AI is not implemented
+- **THEN** client preflight does not block the turn merely because visual AI is disabled or unavailable
 - **AND** server capability feedback remains distinct from corrupt-image or oversized-input errors, with no identical retry offered.
 
 ### Requirement: Local image selection
@@ -50,7 +50,7 @@ The system SHALL preview selected images locally, allow removal and replacement,
 
 ### Requirement: Complete attachment submission and recovery
 
-The system SHALL treat a multi-image message as one turn and retain the captured image set needed for final-turn-only retry in page-local memory. It SHALL NOT silently submit a partial image set or drop eligible image history to fit a request limit.
+The system SHALL treat a multi-image message as one turn and retain the captured image set needed for final-turn-only retry in page-local memory. It SHALL NOT silently submit a partial image set or drop any selected active attachment to fit a request limit. Eligible history SHALL retain references and bounded prior observations, while historical bytes SHALL be transmitted only after explicit selection under the image-interpretation capability.
 
 #### Scenario: Fail to prepare or transmit a required attachment
 
@@ -67,14 +67,14 @@ The system SHALL treat a multi-image message as one turn and retain the captured
 #### Scenario: Reuse eligible images during a follow-up
 
 - **WHEN** a visitor sends a follow-up referencing images from an eligible prior turn
-- **THEN** its request includes all eligible prior image contents from page-local memory in the original order, along with the current turn once
+- **THEN** its request preserves eligible prior image references/observations and includes only the explicitly selected historical bytes, along with the current turn once
 - **AND** the system does not rely on a remote server fetching local preview URLs or on a persistent visitor-file store.
 
 #### Scenario: Exceed the complete request budget
 
-- **WHEN** required current and historical image contents plus other request data exceed the approved transport budget
+- **WHEN** required new and explicitly selected historical image contents plus other request data exceed the approved transport budget
 - **THEN** the system exposes a clear limit outcome before transmission rather than silently omitting images or history
-- **AND** for accumulated historical-image overflow, it shows `图片上下文已达到本次对话上限，请刷新页面后重新选择图片。刷新会清空当前全部对话、图片和草稿。`
+- **AND** when the retained page-image count/memory requires deliberate refresh, it shows `图片上下文已达到本次对话上限，请刷新页面后重新选择图片。刷新会清空当前全部对话、图片和草稿。`
 - **AND** it retains current state until the visitor deliberately refreshes; it does not automatically refresh.
 
 ### Requirement: Ephemeral visitor images and separate curated assets
@@ -95,13 +95,18 @@ The system SHALL retain visitor images only in current-page memory and transient
 
 ### Requirement: Bounded image input
 
-The system SHALL enforce the original, prepared, complete-request, and retained-image limits below, independently on the client and server where applicable. Validation SHALL preserve valid drafts and SHALL NOT silently discard or degrade image content.
+The system SHALL enforce the original, prepared, complete-request, and retained-image limits below, independently on the client and server where applicable.
+
+#### Scenario: Enforce the complete bounded image input contract
+
+- **WHEN** the client prepares or the server validates selected and retained pictures
+- **THEN** Validation SHALL preserve valid drafts and SHALL NOT silently discard or degrade selected image content. At most twenty distinct prepared attachment identities SHALL be retained across the page, counting drafts, failed previews and shared snapshots once per identity. Distinct active visitor inputs SHALL be at most four including new and explicitly selected historical pictures; unselected history SHALL remain available locally.
 
 #### Scenario: Apply the configured numerical limits
 
 - **WHEN** images are selected, prepared, retained or serialized for submission
 - **THEN** originals are nonempty and at most 5,000,000 bytes, 16,000,000 pixels and 8,192 pixels per side; prepared images are at most 500,000 bytes and 1,600 pixels on their longest side
-- **AND** complete JSON is at most 4,000,000 UTF-8 bytes including base64/history/text, and retained prepared blobs are at most 32,000,000 bytes with shared blobs counted once.
+- **AND** complete JSON is at most 4,000,000 UTF-8 bytes including selected base64, historical references/observations and text, and retained prepared blobs are at most 32,000,000 bytes with shared blobs counted once.
 
 #### Scenario: Reject an oversized original image
 
@@ -111,13 +116,13 @@ The system SHALL enforce the original, prepared, complete-request, and retained-
 
 #### Scenario: Check the complete payload
 
-- **WHEN** preparing a request containing current attachments and eligible historical images
+- **WHEN** preparing a request containing new attachments and explicitly selected historical images
 - **THEN** the system checks the complete serialized request against the approved request budget, including text, metadata, and encoding overhead
 - **AND** the server independently enforces applicable request and image validation.
 
 ### Requirement: Supported image count and formats
 
-The system SHALL allow at most four images per user message and accept JPEG (`.jpg`, `.jpeg`, `image/jpeg`) and PNG (`.png`, `image/png`) only. It SHALL validate image contents rather than relying only on filename or declared MIME type. WebP and other input or internal transmission formats SHALL NOT be used in this requirement.
+The system SHALL allow at most four new images per user message and at most four distinct active visitor images per attempt including selected history and accept JPEG (`.jpg`, `.jpeg`, `image/jpeg`) and PNG (`.png`, `image/png`) only. It SHALL validate image contents rather than relying only on filename or declared MIME type. WebP and other input or internal transmission formats SHALL NOT be used in this requirement.
 
 #### Scenario: Select an unsupported image format
 
@@ -130,6 +135,12 @@ The system SHALL allow at most four images per user message and accept JPEG (`.j
 - **WHEN** a new selection would cause a message to exceed four images
 - **THEN** the system explains the four-image limit rather than silently discarding files
 - **AND** the previously valid draft remains available.
+
+#### Scenario: Select history during asynchronous preparation
+
+- **WHEN** new images are being prepared while the visitor selects historical images for the same draft
+- **THEN** the client rechecks the combined active count before committing the prepared batch
+- **AND** an overflowing batch is rejected atomically and its previews are released, preserving selected history and text; two new plus two historical pictures remain valid.
 
 ### Requirement: Bounded image preprocessing
 
@@ -149,13 +160,13 @@ The system MAY resize and re-encode images for transient transmission within app
 
 ### Requirement: Transient validated image payload
 
-The system SHALL submit canonical base64 prepared bytes with stable IDs, validated MIME/dimensions and turn association through the existing JSON `POST /api/chat` contract defined in the design. It SHALL preserve text-only JSON compatibility, independently bound streamed request bytes before parsing, validate prepared image contents and reject unsupported/animated/corrupt images, without writing visitor files anywhere persistent.
+The system SHALL submit canonical base64 selected inputs and hashed descriptors through the strict version-2 [contract](../../changes/archive/2026-10-17-add-image-interpretation/contracts.md). Explicitly opted-in minimal text JSON SHALL remain accepted; unversioned stale requests SHALL fail before paid work. It SHALL independently bound streamed bytes, validate actual MIME/dimensions/hash and reject unsupported/animated/corrupt images without persisting visitor files.
 
 #### Scenario: Validate received contents independently
 
 - **WHEN** the server receives an image-bearing request
 - **THEN** it enforces body/image byte and pixel limits, checks strict base64, supported MIME/signature, complete decoding, actual dimensions and per-turn count/ID rules
-- **AND** a valid current image turn returns image_understanding_unavailable with no provider or Storage call; eligible historical images may accompany a text-only follow-up but are never forwarded to the text model.
+- **AND** selected inputs are forwarded only with valid enabled generation/vision; historical references/observations do not imply byte retransmission, no visitor Storage upload/persistence occurs, and curated reference reads follow their separate rights-gated contract.
 
 #### Scenario: Bypass a declared body size
 
@@ -170,7 +181,7 @@ The system SHALL submit canonical base64 prepared bytes with stable IDs, validat
 
 #### Scenario: Reject oversized context before encoding images
 
-- **WHEN** metadata JSON byte size plus exact base64 expansion of eligible blobs exceeds 4,000,000 bytes
+- **WHEN** metadata/observation JSON byte size plus exact base64 expansion of selected blobs exceeds 4,000,000 bytes
 - **THEN** no full image encoding, user turn append, or fetch starts and the current draft remains available
 - **AND** an allowed body is checked again after actual serialization before sending.
 

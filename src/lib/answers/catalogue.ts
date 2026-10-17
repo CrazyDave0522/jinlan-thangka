@@ -8,7 +8,10 @@ type Match = Extract<RetrievalResult, { status: "matched" }>;
 export type Graph = Match["graph"];
 export function stable(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
-  if (value !== null && typeof value === "object") return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, v]) => `${JSON.stringify(key)}:${stable(v)}`).join(",")}}`;
+  if (value !== null && typeof value === "object") {
+    const entries = Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, v]) => `${JSON.stringify(key)}:${stable(v)}`);
+    return "{" + entries.join(",") + "}";
+  }
   return JSON.stringify(value);
 }
 export function mergeEvidence(results: Exclude<RetrievalResult, { status: "error" }>[]): Graph {
@@ -69,4 +72,7 @@ export function publicReference(fact: CatalogueFact): AnswerReference {
   const { evidenceNotes: _notes, ...ref } = fact;
   void _notes;
   return ref;
+}
+export function buildAnswerCatalogue(graph: Graph) {
+  return buildCatalogue(graph).filter((fact) => fact.owner.table !== "images" || !["storage_locator", "thumbnail_locator"].includes(fact.field));
 }

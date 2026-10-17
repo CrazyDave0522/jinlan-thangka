@@ -40,7 +40,7 @@ test("real clarification/no-match and known provider failures stay distinct", as
     ["busy","发送失败，请重试。",true],
     ["credit","AI 服务暂时不可用，请稍后再试。",false],
     ["invalid","AI 回答未通过校验，本次未展示。请调整问题后重新发送。",false],
-    ["image","图片解读暂未接入，请先发送纯文字问题。",false],
+    ["image","图片理解服务暂不可用，请稍后重新提问。",false],
   ] as const) {
     await page.goto(home);
     await page.getByRole("textbox",{name:"消息内容"}).fill(`[fixture:${marker}] 测试问题`);

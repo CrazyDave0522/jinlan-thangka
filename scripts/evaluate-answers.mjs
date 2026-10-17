@@ -33,7 +33,7 @@ await save();
 for (const [category, question] of cases) {
   const id = crypto.randomUUID(), started = Date.now();
   try {
-    const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" },
+    const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-Chat-Protocol": "2" },
       body: JSON.stringify({ turnId: id, messages: [{ id, role: "user", text: question }] }), signal: AbortSignal.timeout(70000) });
     results.push({ category, question, status: response.status, milliseconds: Date.now() - started, response: await response.json(), humanAssessment: null });
   } catch { results.push({ category, question, status: "transport_failure", milliseconds: Date.now() - started, humanAssessment: null }); }

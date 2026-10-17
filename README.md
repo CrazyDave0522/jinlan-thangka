@@ -20,7 +20,9 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The home page presents the Jinlan Thangka conversation interface with empty welcome guidance. Text and up to four JPG/JPEG or PNG images per message are sent to `POST /api/chat` with page-local context. Images are prepared in a dedicated Worker, previewed locally, and transmitted as actual bytes in JSON without visitor Storage uploads or persistence. See [the image storage boundary and limits](./docs/storage.md). Text-only generation uses the server-only DeepSeek adapter when explicitly enabled, with whole-response validation and separate archive/general-knowledge sections. Missing/off configuration returns generation-unavailable; valid current image turns return image-understanding-unavailable before model calls. Transient network/response failures offer retry for the final user turn; deterministic image/size failures explain the corrective action; drafts remain editable while waiting. Reload clears messages and drafts. Only completed answer/clarification pairs enter follow-up context; failed turns stay visible. Explicit question editing preserves newer drafts. Source inspection, copying and actual image interpretation remain reserved for later requirements. No example conversation is preloaded. The page auto-updates as you edit [src/app/page.tsx](./src/app/page.tsx).
+The home page provides a page-local Thangka conversation with JPEG/PNG inputs. Up to four new or explicitly selected historical pictures are active per attempt, and twenty prepared attachments are retained across the page. Selected bytes travel in version-2 JSON without visitor Storage uploads or persistence. Ordinary follow-ups reuse bounded prior observations; explicit reread carries the original question while preserving newer drafts. See [storage and limits](./docs/storage.md).
+
+Server-only DeepSeek processing uses at most two calls: selected-image analysis followed by text answering, or bounded targeted verification with authorized archive references. Replies distinguish current/prior observations, archive evidence, general knowledge and identified/candidate/insufficient states. Generation and vision are independently disabled by default. Missing/off vision declines selected images before paid work. Failed questions, manual retries and guarded editing preserve independent drafts. Reload clears the page. Full source inspection/copying remain later work; no example conversation is preloaded.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
@@ -39,7 +41,7 @@ Run `npm run check` after completing each requirement. It runs ESLint, TypeScrip
 - `npm run typecheck`: check TypeScript without emitting files.
 - `npm run build`: verify the production build when application integration changes.
 - `npx playwright install chromium`: install the browser for browser tests.
-- `npm run test:e2e`: build and test production text/image request lifecycles plus isolated message components across the mainstream viewport matrix (ports 3100 and 3101).
+- `npm run test:e2e`: build and test production text/image request lifecycles plus isolated message components across the mainstream viewport matrix (ports 3100, 3101 and 3102).
 
 See [the testing guide](./docs/testing.md) for test locations, external-service mocks, and framework limitations.
 
@@ -76,8 +78,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## DeepSeek Configuration
 
-Requirement 5 now includes the server-only text adapter and bounded two-call orchestration. Put `DEEPSEEK_API_KEY` in the ignored project-root `.env.local`, never in `NEXT_PUBLIC_` variables or tracked files. Use `DEEPSEEK_MODEL=deepseek-flash` and keep `DEEPSEEK_ENABLED=false` until explicitly authorizing funded testing. Merely adding a key does not enable calls. Restart `npm run dev` after local changes; on Vercel set the same server-only names and redeploy. Never share the key in chat, screenshots or logs.
+Requirement 5 now includes the server-only text adapter and bounded two-call orchestration. Put `DEEPSEEK_API_KEY` in the ignored project-root `.env.local`, never in `NEXT_PUBLIC_` variables or tracked files. Use `DEEPSEEK_MODEL=deepseek-flash`; keep `DEEPSEEK_ENABLED=false` and `DEEPSEEK_VISION_ENABLED=false` until explicitly authorizing funded testing. Merely adding a key does not enable calls. Restart `npm run dev` after local changes; on Vercel set the same server-only names and redeploy. Never share the key in chat, screenshots or logs.
 
 See [AI setup and evaluation](./docs/ai-setup.md) for activation, limits and remaining live checks. Routine tests use synthetic server-process upstreams and make no paid calls. Local implementation does not establish real-model factual quality or deployed function limits.
+
+Requirement 6 was approved for implementation and archived at the owner's request on 2026-10-17; its code is implemented on this branch. Its [verification record](openspec/changes/archive/2026-10-17-add-image-interpretation/verification.md) separates deterministic coverage from outstanding real-image, permission, latency and deployment acceptance. The production reference manifest remains empty. The owner withdrew the previous archive dataset and deferred real-data preparation; current development uses empty-archive behavior and synthetic fixtures. The owner-authorized [empty-archive runtime evaluation](openspec/changes/archive/2026-10-17-add-image-interpretation/empty-archive-evaluation.md) records corrected model output/retrieval/semantic failures and a passing final eight-case round; this does not establish real Thangka or positive record-identification accuracy. Paid settings were used only in stopped temporary server processes; .env.local was unchanged.
 
 Requirement 5 was manually accepted and archived on 2026-10-16. The first authorized local live batch and its quality corrections are recorded in [the live evaluation](./openspec/changes/archive/2026-10-16-add-grounded-answers/live-evaluation.md). It is not an all-pass factual-accuracy claim; the final required-fields correction passed a separately authorized two-call recheck.

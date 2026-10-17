@@ -4,12 +4,13 @@ import { expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 import { POST } from "./route";
 import { IMAGE_LIMITS } from "@/lib/chat/image-policy";
+import { imageRequest } from "../../../../tests/helpers/image-request";
 async function attachment() {
   const bytes = await sharp({ create: { width: 100, height: 80, channels: 4, background: "#c06080" } }).png().toBuffer();
   return { id: "i", mimeType: "image/png", width: 100, height: 80, data: bytes.toString("base64") };
 }
 function request(images: unknown, headers = { "Content-Type": "application/json" }) {
-  return new Request("http://localhost/api/chat", { method: "POST", headers, body: JSON.stringify({ turnId: "q", messages: [{ id: "q", role: "user", text: "", images }] }) });
+  return new Request("http://localhost/api/chat", { method: "POST", headers, body: JSON.stringify(imageRequest([{ id: "q", role: "user", text: "", images }])) });
 }
 async function outcome(response: Response, status: number, code: string) {
   expect(response.status).toBe(status);
@@ -25,7 +26,7 @@ it("decodes a real image-only set without contacting storage/providers or persis
 it("accepts four images and a mixed text/image history", async () => {
   const images = await Promise.all(Array.from({ length: 4 }, async (_, i) => ({ ...await attachment(), id: `${i}` })));
   await outcome(await POST(request(images)), 422, "image_understanding_unavailable");
-  const body = { turnId: "next", messages: [{ id: "q", role: "user", text: "", images }, { id: "next", role: "user", text: "比较一下" }] };
+  const body = imageRequest([{ id: "q", role: "user", text: "", images }, { id: "10000000-0000-0000-0000-000000000001", role: "assistant", text: "此前答复" }, { id: "next", role: "user", text: "比较一下" }]);
   await outcome(await POST(new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify(body) })), 503, "generation_unavailable");
 });
 it("rejects noncanonical base64, content disagreement, corrupt data and prepared limits", async () => {
@@ -36,13 +37,14 @@ it("rejects noncanonical base64, content disagreement, corrupt data and prepared
     { ...image, mimeType: "image/jpeg" }, { ...image, data: Buffer.alloc(IMAGE_LIMITS.preparedBytes + 1).toString("base64") },
   ]) await outcome(await POST(request([invalid])), 422, "invalid_image");
   const large = await sharp({ create: { width: 1601, height: 1, channels: 3, background: "white" } }).png().toBuffer();
-  await outcome(await POST(request([{ ...image, width: 1601, height: 1, data: large.toString("base64") }])), 422, "invalid_image");
+  await outcome(await POST(request([{ ...image, width: 1601, height: 1, data: large.toString("base64") }])), 422, "invalid_image_context");
 });
-it("returns 400 for invalid metadata/roles/counts and 415 for non-JSON", async () => {
+it("distinguishes blank turns, invalid metadata, active counts and non-JSON", async () => {
   const image = await attachment();
-  for (const images of [[], [image, image], [{ ...image, width: 0 }], Array.from({ length: 5 }, (_, i) => ({ ...image, id: `${i}` }))]) {
-    await outcome(await POST(request(images)), 400, "invalid_request");
-  }
+  await outcome(await POST(request([])), 400, "invalid_request");
+  await outcome(await POST(request([image, image])), 400, "invalid_request");
+  await outcome(await POST(request([{ ...image, width: 0 }])), 422, "invalid_image_context");
+  await outcome(await POST(request(Array.from({ length: 5 }, (_, i) => ({ ...image, id: `${i}` })))), 422, "image_context_too_large");
   await outcome(await POST(request([image], { "Content-Type": "text/plain" })), 415, "unsupported_media_type");
 });
 it("bounds actual streamed bytes even with missing or forged Content-Length", async () => {
@@ -57,7 +59,7 @@ it("bounds actual streamed bytes even with missing or forged Content-Length", as
 it("accepts the exact body boundary and rejects one byte above", async () => {
   const body = JSON.stringify({ turnId: "q", messages: [{ id: "q", role: "user", text: "text" }] });
   const atLimit = body + " ".repeat(IMAGE_LIMITS.requestBytes - Buffer.byteLength(body));
-  const init = (text: string) => new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: text });
+  const init = (text: string) => new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json", "X-Chat-Protocol": "2" }, body: text });
   await outcome(await POST(init(atLimit)), 503, "generation_unavailable");
   await outcome(await POST(init(atLimit + " ")), 413, "request_too_large");
 });

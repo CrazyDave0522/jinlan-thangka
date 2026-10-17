@@ -1,6 +1,6 @@
-import { assistant } from "../fixtures/answer";
+import { successV2 } from "../fixtures/vision";
 import { expect, test, type Page, type Route } from "@playwright/test";
-import type { ChatRequest } from "../../src/lib/chat/conversation";
+import type { ImageRequest as ChatRequest } from "../../src/lib/vision/types";
 
 const home = "http://127.0.0.1:3100";
 const field = (page: Page) => page.getByRole("textbox", { name: "消息内容" });
@@ -62,7 +62,7 @@ test("pending draft, duplicate guard, retry snapshot and success context", async
       await new Promise<void>((resolve) => { release = resolve; });
       await route.fulfill({ status: 500, json: { error: { code: "test_failure" } } });
     } else if (requests.length === 2) {
-      await route.fulfill({ json: { turnId: body.turnId, message: assistant("仅用于浏览器测试的回答") } });
+      await route.fulfill({ json: successV2(body, "仅用于浏览器测试的回答") });
     } else await route.fulfill({ status: 503, json: { error: { code: "generation_unavailable" } } });
   });
   await page.goto(home);
@@ -133,7 +133,7 @@ test("completion follows the bottom but preserves older reading and input focus"
     count++;
     if (count === 4) { held = route; return; }
     const body = route.request().postDataJSON() as ChatRequest;
-    await route.fulfill({ json: { turnId: body.turnId, message: assistant("浏览器测试长回答。\n".repeat(35), `aaaaaaaa-aaaa-4aaa-8aaa-${String(count).padStart(12,"0")}`) } });
+    await route.fulfill({ json: successV2(body, "浏览器测试长回答。\n".repeat(35), `aaaaaaaa-aaaa-4aaa-8aaa-${String(count).padStart(12,"0")}`) });
   });
   await page.goto(home);
   const region = page.getByRole("region", { name: "对话内容" });
@@ -150,7 +150,7 @@ test("completion follows the bottom but preserves older reading and input focus"
   const before = await region.evaluate((element) => element.scrollTop);
   const composerBefore = await field(page).boundingBox();
   const body = held!.request().postDataJSON() as ChatRequest;
-  await held!.fulfill({ json: { turnId: body.turnId, message: assistant("追加的测试长回答。\n".repeat(40), "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb") } });
+  await held!.fulfill({ json: successV2(body, "追加的测试长回答。\n".repeat(40), "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb") });
   await expect(page.getByRole("listitem", { name: "雪域金澜的回答" })).toHaveCount(4);
   expect(await region.evaluate((element) => element.scrollTop)).toBe(before);
   await expect(field(page)).toBeFocused();

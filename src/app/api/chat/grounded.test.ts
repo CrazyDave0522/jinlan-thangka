@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 import { POST } from "./route";
 const body = { turnId: "non-uuid-request", messages: [{ id: "non-uuid-request", role: "user", text: "介绍唐卡" }] };
-const request = (value: unknown = body) => new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) });
+const request = (value: unknown = body) => new Request("http://localhost/api/chat", { method: "POST", headers: { "Content-Type": "application/json", "X-Chat-Protocol": "2" }, body: JSON.stringify(value) });
 beforeEach(() => { vi.stubEnv("DEEPSEEK_ENABLED", "true"); vi.stubEnv("DEEPSEEK_MODEL", "deepseek-flash"); vi.stubEnv("DEEPSEEK_API_KEY", "synthetic-route-key"); });
 afterEach(() => vi.useRealTimers());
 it("runs real route orchestration with mocked provider transport and canonical success", async () => {

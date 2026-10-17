@@ -2,7 +2,6 @@
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { checkOriginal, imageHeader, IMAGE_LIMITS } from "./image-policy";
-import { isChatRequest } from "./conversation";
 
 async function fixture(format: "jpeg" | "png" = "png", width = 100, height = 80) {
   return sharp({ create: { width, height, channels: 4, background: "#a05080" } })[format]().toBuffer();
@@ -30,24 +29,6 @@ describe("image input boundaries", () => {
     expect(() => checkOriginal(file, bomb)).toThrow();
     const chunk = Buffer.alloc(20); chunk.writeUInt32BE(8); chunk.write("acTL", 4);
     expect(() => imageHeader(Buffer.concat([png.subarray(0, 33), chunk, png.subarray(33)]))).toThrow(/动态/);
-  });
-});
-
-describe("image-aware message shapes", () => {
-  const image = { id: "img", mimeType: "image/png", width: 100, height: 80, data: "test" };
-  const user = (images: unknown = [image], text = "") => ({ id: "q", role: "user", text, images });
-  const request = (message: unknown) => ({ turnId: "q", messages: [message] });
-  it("accepts image-only and up to four distinct attachments, preserving text-only support", () => {
-    expect(isChatRequest(request(user()))).toBe(true);
-    expect(isChatRequest(request(user(Array.from({ length: 4 }, (_, i) => ({ ...image, id: `image${i}` })))))).toBe(true);
-    expect(isChatRequest({ turnId: "q", messages: [{ id: "q", role: "user", text: "question" }] })).toBe(true);
-  });
-  it.each([[], [null], [{ ...image, width: 0 }], [{ ...image, height: 1.5 }], [{ ...image, mimeType: "image/webp" }], [image, image], Array.from({ length: 5 }, (_, i) => ({ ...image, id: `${i}` }))].map((images) => ({ images })))("rejects invalid image sets: %j", ({ images }) => {
-    expect(isChatRequest(request(user(images)))).toBe(false);
-  });
-  it("rejects assistant images and attachment identities reused across turns", () => {
-    expect(isChatRequest({ turnId: "q", messages: [{ ...user(), id: "a", role: "assistant", text: "answer" }, user()] })).toBe(false);
-    expect(isChatRequest({ turnId: "q", messages: [{ ...user(), id: "old" }, user()] })).toBe(false);
   });
 });
 

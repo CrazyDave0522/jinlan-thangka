@@ -1,32 +1,24 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { encodeRequest, readBlob, requestLimitNotice, requestSize, prepareImage } from "./image-client";
-import { IMAGE_CONTEXT_NOTICE, imageFailureMessage, type LocalImage } from "./image-policy";
-import { createRequest } from "./conversation";
+import { readBlob, prepareImage } from "./image-client";
+import { imageFailureMessage, type LocalImage } from "./image-policy";
+import { createSnapshot, encodeSnapshot, snapshotSize } from "./image-context";
 const image = (size = 4): LocalImage => ({ id: "i", mimeType: "image/png", width: 10, height: 10, blob: new Blob([new Uint8Array(size)]), url: "blob:local" });
 afterEach(() => vi.unstubAllGlobals());
 it.each([1, 2, 3, 4, 500_000])("preflights exact UTF-8 bytes including base64 overhead for %i bytes", async (size) => {
-  const request = createRequest([], { id: "q", role: "user", text: "中文与\n引号\"", images: [image(size)] });
-  const body = await encodeRequest(request, new AbortController().signal);
-  expect(requestSize(request)).toBe(new TextEncoder().encode(body).byteLength);
+  const request = createSnapshot([], { id: "q", role: "user", text: "中文与\n引号\"", images: [image(size)] }, new Map([["i", 1]]));
+  const { body } = await encodeSnapshot(request, new AbortController().signal);
+  expect(snapshotSize(request)).toBe(new TextEncoder().encode(body).byteLength);
   const wire = JSON.parse(body);
-  expect(wire.messages[0].images[0]).not.toHaveProperty("url");
-  expect(wire.messages[0].images[0]).not.toHaveProperty("blob");
-  expect(atob(wire.messages[0].images[0].data).length).toBe(size);
-});
-it("keeps image identities/bytes in snapshots but excludes earlier failed images", () => {
-  const user = { id: "old", role: "user" as const, text: "", images: [image()] };
-  const request = createRequest([], user);
-  const current = { id: "next", role: "user" as const, text: "继续" };
-  expect(createRequest([{ user, request, status: "completed", answer: { id: "a", role: "assistant", text: "回答" } }], current).messages[0].images![0].blob).toBe(user.images[0].blob);
-  expect(createRequest([{ user, request, status: "failed" }], current).messages).toHaveLength(1);
-  expect(requestLimitNotice(createRequest([{ user, request, status: "completed", answer: { id: "a", role: "assistant", text: "回答" } }], current))).toBe(IMAGE_CONTEXT_NOTICE);
-  expect(requestLimitNotice(request)).toContain("减少图片");
-  expect(requestLimitNotice(createRequest([], current))).toContain("文字");
+  expect(wire.images[0]).not.toHaveProperty("url");
+  expect(wire.images[0]).not.toHaveProperty("blob");
+  expect(atob(wire.inputs[0].data).length).toBe(size);
 });
 it("does not read or encode an already aborted request", async () => {
   const controller = new AbortController(); controller.abort();
+  const read = vi.spyOn(FileReader.prototype, "readAsArrayBuffer");
   await expect(readBlob(image().blob, controller.signal)).rejects.toThrow();
-  await expect(encodeRequest(createRequest([], { id: "q", role: "user", text: "q" }), controller.signal)).rejects.toThrow();
+  await expect(encodeSnapshot(createSnapshot([], { id: "q", role: "user", text: "q", images: [image()] }, new Map([["i", 1]])), controller.signal)).rejects.toThrow();
+  expect(read).not.toHaveBeenCalled();
 });
 it("terminates a processing worker when canceled", async () => {
   const terminate = vi.fn();

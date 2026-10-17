@@ -4,7 +4,9 @@ export const syntheticEnvironment = {
   DEEPSEEK_API_KEY: "synthetic-browser-key-never-real",
   DEEPSEEK_MODEL: "deepseek-flash",
   DEEPSEEK_ENABLED: "false",
+  DEEPSEEK_VISION_ENABLED: "false",
+  JINLAN_BROWSER_FIXTURES: "true",
 };
 export function childEnvironment(parent, enabled = false) {
-  return { ...parent, ...syntheticEnvironment, DEEPSEEK_ENABLED: enabled ? "true" : "false", NODE_OPTIONS: "" };
+  return { ...parent, ...syntheticEnvironment, DEEPSEEK_ENABLED: enabled ? "true" : "false", DEEPSEEK_VISION_ENABLED: enabled ? "true" : "false", NODE_OPTIONS: "" };
 }

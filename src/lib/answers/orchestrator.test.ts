@@ -134,3 +134,24 @@ it("rejects the observed later-block missing-key output without filling fields o
   expect(complete).toHaveBeenCalledTimes(2);
   expect(retrieve).not.toHaveBeenCalled();
 });
+
+it.each(["skipped", "overfiltered"])("executes the complete explicit name search against an empty archive after a %s plan", async (variant) => {
+  const expected = { kind: "search", entity: "artwork", filters: [{ field: "name", mode: "exact", value: "合成作品17" }], limit: 5 };
+  const complete = vi.fn(async (_c, stage, messages) => {
+    const data = JSON.parse(messages[1].content);
+    if (stage === "planner") {
+      expect(data.requiredLookups).toEqual([expected]);
+      return { content: { action: "answer", queries: variant === "skipped" ? [] : [{ ...expected, filters: [...expected.filters, { field: "subject", mode: "exact", value: "观音" }] }] }, usage: {} };
+    }
+    expect(data.retrievalStatus).toBe("no_matches");
+    expect(data.catalogue).toEqual([]);
+    expect(data.provenance[0].query).toEqual(expected);
+    return { content: { blocks: [{ kind: "general", text: "本次未找到匹配档案，无法确认作者或年代。", evidenceKeys: [] }] }, usage: {} };
+  });
+  const retrieve = vi.fn(async (query): Promise<RetrievalResult> => ({ status: "no_matches", query, candidates: [], candidateLimitReached: false }));
+  const result = await generateAnswer(request("作品《合成作品17》的作者和年代？"), config, scope(), { complete, retrieve });
+  expect(retrieve).toHaveBeenCalledExactlyOnceWith(expected, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+  expect(complete).toHaveBeenCalledTimes(2);
+  expect(result.message.notices).toEqual(["no_matches"]);
+  expect(result.message.references).toEqual([]);
+});

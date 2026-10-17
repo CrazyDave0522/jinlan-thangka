@@ -20,6 +20,6 @@ if (mode === "harness") process.exit(await run([fileURLToPath(new URL("../../../
 if (mode === "off") {
   const code = await run([nextBin, "build"]);
   if (code) process.exit(code);
-} else env.DEEPSEEK_ENABLED = "true";
+} else { env.DEEPSEEK_ENABLED = "true"; env.DEEPSEEK_VISION_ENABLED = "true"; }
 // Preload is required for both runtimes: fail closed even in the off-mode regression server.
 process.exit(await run(["--import", preload, nextBin, "start", "--hostname", "127.0.0.1", "--port", mode === "off" ? "3100" : "3102"]));

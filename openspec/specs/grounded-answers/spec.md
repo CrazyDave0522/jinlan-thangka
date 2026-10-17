@@ -24,11 +24,16 @@ The system SHALL produce complete DeepSeek text answers distinguishing archive-b
 
 ### Requirement: Bounded validated retrieval planning
 
-The system SHALL use at most one planning call and two existing structured retrieval queries per user attempt. Plans SHALL be strictly validated before database reads, limit roots to five per query and filter values to 64 Unicode code points, and permit only validated answer, clarification or needs-image variants. It SHALL NOT execute model SQL, URLs, arbitrary tools or mutations.
+The system SHALL use at most one analysis/planning call and at most four existing structured retrieval queries for image-related groups, retaining at most two for ordinary text-only requests.
+
+#### Scenario: Enforce the complete bounded validated retrieval planning contract
+
+- **WHEN** the first model call returns an image or text retrieval plan
+- **THEN** Plans SHALL be strictly validated before database reads, limit roots to five per query and filter values to 64 Unicode code points, and permit only strict answer, clarification or needs-image variants. Image analysis SHALL additionally validate bounded per-image observations, groups and clue/query provenance before reads; text-only planning SHALL not fabricate new visual observations. It SHALL NOT execute model SQL, URLs, arbitrary tools or mutations.
 
 #### Scenario: Reject a malformed retrieval plan
 
-- **WHEN** a plan contains unknown keys, invalid fields/limits, duplicate queries or more than two queries
+- **WHEN** a plan contains unknown keys, invalid fields/limits, duplicate queries with empty/overlapping provenance or more than the applicable raw two-text/four-image-group query limit
 - **THEN** the operation fails before database I/O
 - **AND** no automatic repair, paid retry or general-knowledge success disguises that failure.
 
@@ -44,9 +49,20 @@ The system SHALL use at most one planning call and two existing structured retri
 - **THEN** generation stops with evidence_changed and no partial graph or answer call
 - **AND** identical rows deduplicate deterministically while query roots/caps/traversal provenance remain distinct.
 
+#### Scenario: Merge a shared image-group query
+
+- **WHEN** identical normalized queries bind disjoint nonempty sets of actual image groups within the raw four-query limit
+- **THEN** one query executes with unioned group provenance
+- **AND** ordinary text duplicates remain invalid and query merging never fabricates exhaustive candidate coverage.
+
 ### Requirement: Server-owned answer and reference validation
 
-The system SHALL validate model JSON into 1–8 archive/general blocks, at most 2,000 total block-text code points and at most eight evidence keys per archive block. Archive blocks SHALL require current server-catalogue keys; general blocks SHALL contain no references. Source names, IDs and citation locations SHALL be supplied from actual server evidence rather than model-created bibliography.
+The system SHALL validate model JSON into 1–8 visual/archive/general blocks, at most 2,000 total block-text code points and at most eight evidence keys per archive block.
+
+#### Scenario: Enforce the complete server-owned answer and reference validation contract
+
+- **WHEN** the server validates generated blocks and their evidence references
+- **THEN** Archive blocks SHALL require current server-catalogue keys; general blocks SHALL contain no archive references. Visual/group/identity references SHALL follow the finalized image-interpretation schema, resolve to the selected analysis or explicitly labelled prior observations, and never convert historical summaries into new confirmed identities. Candidate/identified artwork associations SHALL use actual group query provenance, both finalized identity paths and fresh source-scoped evidence; reference comparisons SHALL resolve to authorized candidate image/artwork rows, not model-created URLs. Source names, IDs and citation locations SHALL be supplied from actual server evidence rather than model-created bibliography.
 
 #### Scenario: Reject invented citations or truncated model output
 
@@ -78,23 +94,33 @@ The system SHALL use server-only DeepSeek configuration and the fixed official e
 
 ### Requirement: Honest text-only image boundary
 
-The system SHALL retain local image selection/validation but decline current image-bearing requests without model calls until image interpretation is implemented. Historical images SHALL NOT be transmitted to the text model; eligible text-only follow-ups SHALL receive an explicit notice that historical pictures were not examined.
+The system SHALL retain local image validation and route actual selected inputs according to server-owned generation/vision configuration.
+
+#### Scenario: Enforce the complete honest text-only image boundary contract
+
+- **WHEN** a validated request contains selected or historical image references
+- **THEN** After input validation, disabled/missing/invalid vision SHALL return image_understanding_unavailable for selected image bytes before generation checks, without provider calls. Enabled vision SHALL default to selected-image analysis followed by text-only answering; necessary targeted verification MAY reuse scoped selected visitor pictures with authorized archive references under separate bounds, only when its relevant visitor bytes are selected in this attempt, without unselected history or a third provider call. Unselected historical pictures SHALL remain reference/observation context without a claim of fresh inspection.
 
 #### Scenario: Submit a new image with or without text
 
-- **WHEN** a valid current message contains an image
+- **WHEN** a valid request selects image inputs while vision is disabled, missing or invalid
 - **THEN** the service returns image_understanding_unavailable and a corrective Chinese notice
 - **AND** it does not generate an answer implying the image was inspected.
 
 #### Scenario: Refer to historical images
 
-- **WHEN** a text-only follow-up includes image-bearing history
-- **THEN** only historical text and an image-not-interpreted marker can reach the model
-- **AND** a plan requiring those pictures returns the unavailable outcome, while independent text answers carry the limitation notice.
+- **WHEN** a text-only follow-up includes unselected historical image references/observations
+- **THEN** only historical text and labelled prior observations, not historical image bytes, can reach planning
+- **AND** a plan needing new visual confirmation returns the explicit reread clarification without reference fetch or answer/verification calls, while independent text answers carry applicable prior-observation limitations.
 
 ### Requirement: Whole-answer presentation and context continuity
 
-The system SHALL validate the design's success/error/reference contracts and canonical history format, preserving turn identity and page-local conversation. It SHALL show pending state until complete validation and render evidence/general knowledge separately without duplicated text. Legacy plain API successes SHALL NOT bypass reference validation. Streaming and full source-inspection/copy UI SHALL remain outside this increment.
+The system SHALL validate the finalized image-interpretation design's extended success/error/reference contracts and stable canonical image labels, retaining the accepted text design's other history rules, preserving turn identity and page-local conversation.
+
+#### Scenario: Enforce the complete whole-answer presentation and context continuity contract
+
+- **WHEN** a whole answer is validated, displayed and retained for a later turn
+- **THEN** It SHALL show pending state until complete validation and render current/prior image observations, archive evidence, identity states and general knowledge separately without duplicated text. No-search copy SHALL say “本次未检索数据库。”; image notices SHALL reflect actual selected-image analysis, historical-observation reuse and validated identification state rather than blanket candidate-only status. Legacy plain API successes SHALL NOT bypass reference validation. Streaming and full source-inspection/copy UI SHALL remain outside this increment.
 
 #### Scenario: Publish a validated complete answer
 
@@ -104,9 +130,9 @@ The system SHALL validate the design's success/error/reference contracts and can
 
 #### Scenario: Group adjacent paragraphs without repeated headings
 
-- **WHEN** one answer contains consecutive blocks of the same archive/general kind
+- **WHEN** one answer contains consecutive blocks of the same visual/archive/general kind
 - **THEN** each consecutive run has one category heading and separate paragraphs in the original order
-- **AND** kind transitions and separate answers retain their own headings, with citations on their original paragraphs and canonical history unchanged.
+- **AND** kind transitions and separate answers retain their own headings, with citations on their original paragraphs and deterministic canonical history preserving the extended labels and source-image identity.
 
 #### Scenario: Preserve a newer draft when correcting a failed question
 
@@ -128,11 +154,16 @@ The system SHALL validate the design's success/error/reference contracts and can
 
 ### Requirement: Bounded generation and cost control
 
-The system SHALL enforce the design's context, request/response byte, output-token and concurrency caps with at most two provider calls. It SHALL start a shared 55-second deadline at POST entry, covering body reads through serialization, with stage/caller cancellation and a 65-second client timeout. Overflow SHALL fail without silent history/evidence truncation. It SHALL NOT claim per-runtime counters enforce a global spending cap.
+The system SHALL enforce the image-interpretation design's selected-input/observation, context, payload, output-token, stage and concurrency caps, retaining the accepted text-only limits for image-free paths with at most two provider calls.
+
+#### Scenario: Enforce the complete bounded generation and cost control contract
+
+- **WHEN** the service dispatches, waits for or cancels generation work
+- **THEN** It SHALL start a shared 55-second deadline at POST entry, covering body reads through serialization, with stage/caller cancellation and a 65-second client timeout. Overflow SHALL fail without silent history/evidence truncation. It SHALL NOT claim per-runtime counters enforce a global spending cap.
 
 #### Scenario: Reject excessive context or evidence
 
-- **WHEN** history exceeds 32 messages/16,000 total canonical text code points, current text exceeds 2,000, or a provider payload/evidence exceeds its byte budget
+- **WHEN** history exceeds 32 messages, combined canonical/observation text exceeds 16,000 code points, current text exceeds 2,000, or a provider payload/evidence exceeds its byte budget
 - **THEN** a corrective failure is enforced before the affected provider call, preserving the unsent composer or the dispatched failed question and independent next draft as applicable
 - **AND** no cropped evidence/history is silently presented as complete.
 
@@ -150,13 +181,13 @@ The system SHALL enforce the design's context, request/response byte, output-tok
 
 #### Scenario: Fit a representative multi-turn transcript
 
-- **WHEN** context contains three completed pairs with 600-code-point user messages and 3,500-code-point canonical assistant messages, followed by a 600-code-point question
+- **WHEN** context contains three completed pairs with 600-code-point user messages and 3,500-code-point canonical assistant messages, followed by a 600-code-point question, with no separate observation-summary text
 - **THEN** the 12,900-code-point context fits the 16,000 limit without truncation
 - **AND** independent byte/token caps and exact/one-over boundary cases are verified separately.
 
 ### Requirement: Explicit failures and retry ownership
 
-The system SHALL distinguish unavailable configuration/credits, corrective input/image/context failures, invalid model output, retrieval failure, transient provider failure and timeout. Responses SHALL be no-store. Only suitable transient final-turn failures SHALL offer manual retry using the original snapshot, explicitly noting a fresh AI request; cancellation SHALL publish no assistant answer.
+The system SHALL distinguish unavailable configuration/credits, corrective input/image/context failures, invalid model output, retrieval failure, transient provider/reference failure and timeout. Responses SHALL be no-store. Only suitable transient final-turn failures SHALL offer manual retry using the original visitor snapshot with fresh archive/grant checks, explicitly noting a fresh AI request; cancellation SHALL publish no assistant answer.
 
 #### Scenario: Encounter insufficient credits or failed retrieval
 
@@ -169,6 +200,18 @@ The system SHALL distinguish unavailable configuration/credits, corrective input
 - **WHEN** the owner/user deliberately retries a retryable final-turn failure
 - **THEN** a new attempt uses the original question/context and preserves the next editable draft
 - **AND** stale completions cannot overwrite the new attempt, and corrective/deterministic failures do not offer identical retry.
+
+#### Scenario: Distinguish reference limitations from failures
+
+- **WHEN** a reference-dependent group has no current approved reference, or an authorized reference operation fails
+- **THEN** missing/stale/denied grants are evidence limitations; malformed required configuration, nontransient access/content failures are reference_unavailable (503), while network/429/5xx failures are reference_failed (502)
+- **AND** attempted-read failures stop the whole answer; only reference_failed is newly eligible for identical final-turn retry, with current archive/permission checks repeated.
+
+#### Scenario: Report image-context corrective outcomes
+
+- **WHEN** image/observation ownership is invalid or active/request-manifest counts exceed their limits
+- **THEN** invalid_image_context or image_context_too_large (422) is nonretryable, and newer drafts remain intact
+- **AND** corrupt actual bytes retain invalid_image; unknown protocol versions remain invalid_request; reference/shared expiry uses generation_timeout.
 
 ### Requirement: Independent behavior and quality verification
 

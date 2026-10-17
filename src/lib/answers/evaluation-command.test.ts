@@ -13,6 +13,7 @@ function execute(status: number, response: string) {
   const preload = join(dir, "transport.mjs");
   writeFileSync(preload, `globalThis.fetch = async (url, init) => {
     if (url !== 'http://127.0.0.1:3004/api/chat' || init.method !== 'POST') throw new Error('Unexpected transport');
+    if (init.headers['X-Chat-Protocol'] !== '2') throw new Error('Missing protocol opt-in');
     return Response.json(${response}, {status:${status}});
   };`);
   const output = execFileSync(process.execPath, ["--import", preload, script, "--allow-paid", "--port=3004"], { cwd: dir, encoding: "utf8", env: { ...process.env, DEEPSEEK_ENABLED: "false", DEEPSEEK_API_KEY: "synthetic-command-test", NODE_OPTIONS: "" } });

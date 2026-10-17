@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "@/lib/supabase/config";
+import { archiveConfig } from "@/lib/supabase/archive-config";
 import type { ArchiveRow, ArchiveTable, Database, EvidenceLink, Json } from "./database";
 import { isObject, normalizeQuery, RETRIEVAL_LIMITS as L, RetrievalFailure, UUID,
   type Candidate, type MatchReason, type NormalizedArchiveQuery, type RetrievalResult } from "./contracts";
@@ -51,17 +51,9 @@ export async function retrieveArchive(input: unknown, options: { signal?: AbortS
   const op = createOperation(options.signal);
   try {
     op.check();
-    let config: ReturnType<typeof getSupabaseConfig>;
+    let config: ReturnType<typeof archiveConfig>;
     try {
-      config = getSupabaseConfig();
-      const url = new URL(config.url);
-      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) throw new Error();
-      if (!/^sb_publishable_[A-Za-z0-9_-]+$/.test(config.key)) {
-        const parts = config.key.split(".");
-        if (parts.length !== 3 || !parts.every((p) => /^[A-Za-z0-9_-]+$/.test(p))) throw new Error();
-        const payload: unknown = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
-        if (!isObject(payload) || payload.role !== "anon") throw new Error();
-      }
+      config = archiveConfig();
     } catch { throw new RetrievalFailure("configuration_error"); }
     const db = createClient<Database, "thangka">(config.url, config.key, {
       db: { schema: "thangka", retry: false }, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },

@@ -26,7 +26,7 @@ it("uses fixed endpoint, explicit nonthinking JSON whole output, caps and safe n
   const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
   expect(url).toBe("https://api.deepseek.com/chat/completions");
   expect(init).toMatchObject({ cache: "no-store", redirect: "error" });
-  expect(JSON.parse(String(init.body))).toMatchObject({ stream: false, thinking: { type: "disabled" }, max_tokens: 1024, response_format: { type: "json_object" } });
+  expect(JSON.parse(String(init.body))).toMatchObject({ stream: false, thinking: { type: "disabled" }, temperature: 0, max_tokens: 1024, response_format: { type: "json_object" } });
 });
 it.each([[401, "provider_unavailable"], [402, "provider_unavailable"], [403, "provider_unavailable"], [429, "provider_busy"], [500, "provider_failed"], [503, "provider_failed"]])("maps HTTP %s without exposing provider bodies or retrying", async (status, code) => {
   const fetch = vi.fn(async () => new Response("sensitive provider detail", { status: status as number })); vi.stubGlobal("fetch", fetch);
@@ -84,4 +84,21 @@ it("records numeric usage without credentials, prompts, response bodies or extra
   expect(JSON.stringify(log.mock.calls)).not.toContain(config.key);
   expect(JSON.stringify(log.mock.calls)).not.toContain("question");
   expect(JSON.stringify(log.mock.calls)).not.toContain("secret");
+});
+it("separates image stages, output allowances and full versus text-envelope caps", async () => {
+  const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json(envelope())); vi.stubGlobal("fetch", fetch);
+  const part = { type: "image_url" as const, image_url: { url: "data:image/png;base64,YQ==", detail: "original" as const } };
+  for (const [stage, expected] of [["analysis", 2048], ["image_answer", 1536], ["verification", 3072]] as const) {
+    await complete(config, stage, [{ role: "user", content: stage === "image_answer" ? "text only" : [{ type: "text", text: "bounded context" }, part] }], scope);
+    expect(JSON.parse(String(fetch.mock.calls.at(-1)?.[1]?.body)).max_tokens).toBe(expected);
+    expect(JSON.parse(String(fetch.mock.calls.at(-1)?.[1]?.body)).temperature).toBe(0);
+  }
+  fetch.mockClear();
+  await expect(complete(config, "image_answer", [{ role: "user", content: [part] }], scope)).rejects.toThrow("evidence_too_large");
+  await expect(complete(config, "analysis", [{ role: "user", content: Array(5).fill(part) }], scope)).rejects.toThrow("context_too_large");
+  await expect(complete(config, "verification", [{ role: "user", content: Array(9).fill(part) }], scope)).rejects.toThrow("evidence_too_large");
+  await expect(complete(config, "analysis", [{ role: "user", content: [{ type: "text", text: "x".repeat(64_001) }] }], scope)).rejects.toThrow("context_too_large");
+  await expect(complete(config, "analysis", [{ role: "user", content: [{ ...part, image_url: { ...part.image_url, url: "data:image/png;base64," + "A".repeat(3_000_000) } }] }], scope)).rejects.toThrow("context_too_large");
+  await expect(complete(config, "verification", [{ role: "user", content: [{ ...part, image_url: { ...part.image_url, url: "data:image/png;base64," + "A".repeat(6_000_000) } }] }], scope)).rejects.toThrow("evidence_too_large");
+  expect(fetch).not.toHaveBeenCalled();
 });

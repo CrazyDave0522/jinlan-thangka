@@ -11,13 +11,14 @@ export const ERROR_STATUS = {
   generation_unavailable: 503, context_too_large: 422, evidence_too_large: 422, image_understanding_unavailable: 422,
   busy: 429, provider_unavailable: 503, provider_busy: 429, provider_failed: 502, retrieval_failed: 502,
   evidence_changed: 409, invalid_model_output: 502, generation_timeout: 504,
+  invalid_image_context: 422, image_context_too_large: 422, reference_unavailable: 503, reference_failed: 502,
 } as const;
 export type ChatErrorCode = keyof typeof ERROR_STATUS;
 export class AnswerFailure extends Error {
   constructor(readonly code: ChatErrorCode) { super(code); }
 }
 export function retryable(code?: ChatErrorCode) {
-  return !code || (["busy", "provider_busy", "provider_failed", "evidence_changed", "generation_timeout"] as string[]).includes(code);
+  return !code || (["busy", "provider_busy", "provider_failed", "reference_failed", "evidence_changed", "generation_timeout"] as string[]).includes(code);
 }
 export type EvidenceTable = "artists" | "artworks" | "images" | "artwork_artists";
 export type EvidenceOwner = { table: Exclude<EvidenceTable, "artwork_artists">; id: string }
@@ -68,7 +69,7 @@ export function parseBlocks(input: unknown): AnswerBlock[] {
   return input.blocks as AnswerBlock[];
 }
 const uuid = (v: unknown): v is string => typeof v === "string" && UUID.test(v) && v === v.toLowerCase();
-function validReference(v: unknown): v is AnswerReference {
+export function validReference(v: unknown): v is AnswerReference {
   if (!exact(v, ["key", "owner", "label", "field", "value", "reviewStatus", "attributionStatus", "sources"]) || !isObject(v.owner)
     || typeof v.key !== "string" || !/^E[1-9]\d*$/.test(v.key) || !text(v.label) || typeof v.field !== "string") return false;
   const o = v.owner;

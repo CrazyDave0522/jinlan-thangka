@@ -10,14 +10,21 @@ export function providerConfig() {
   return { key, model: "deepseek-flash" as const };
 }
 export type ProviderConfig = ReturnType<typeof providerConfig>;
-export type ProviderMessage = { role: "system" | "user"; content: string };
-export async function complete(config: ProviderConfig, stage: "planner" | "answer", messages: ProviderMessage[], scope: Scope) {
+export type ProviderPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string; detail: "original" } };
+export type ProviderMessage = { role: "system" | "user"; content: string | ProviderPart[] };
+export type ProviderStage = "planner" | "answer" | "analysis" | "image_answer" | "verification";
+export async function complete(config: ProviderConfig, stage: ProviderStage, messages: ProviderMessage[], scope: Scope) {
   const started = Date.now();
-  const payload = { model: config.model, messages, stream: false, thinking: { type: "disabled" },
-    response_format: { type: "json_object" }, max_tokens: stage === "planner" ? 1_024 : 1_536 };
-  if (jsonBytes(payload) > (stage === "planner" ? LIMITS.plannerBytes : LIMITS.answerBytes)) throw new AnswerFailure(stage === "planner" ? "context_too_large" : "evidence_too_large");
+  const planner = stage === "planner" || stage === "analysis";
+  const tokens = stage === "analysis" ? 2_048 : stage === "verification" ? 3_072 : stage === "planner" ? 1_024 : 1_536;
+  const payload = { model: config.model, messages, stream: false, thinking: { type: "disabled" }, temperature: 0,
+    response_format: { type: "json_object" }, max_tokens: tokens };
+  const images = messages.flatMap((m) => Array.isArray(m.content) ? m.content.filter((p) => p.type === "image_url") : []);
+  if (images.length > (stage === "analysis" ? 4 : stage === "verification" ? 8 : 0) || images.some((p) => p.image_url.detail !== "original" || !/^data:image\/(jpeg|png);base64,/.test(p.image_url.url))) throw new AnswerFailure(planner ? "context_too_large" : "evidence_too_large");
+  const envelope = { ...payload, messages: messages.map((m) => ({ ...m, content: Array.isArray(m.content) ? m.content.filter((p) => p.type !== "image_url") : m.content })) };
+  if (jsonBytes(envelope) > (planner ? LIMITS.plannerBytes : LIMITS.answerBytes) || jsonBytes(payload) > (stage === "analysis" ? 3_000_000 : stage === "verification" ? 6_000_000 : planner ? LIMITS.plannerBytes : LIMITS.answerBytes)) throw new AnswerFailure(planner ? "context_too_large" : "evidence_too_large");
   scope.check();
-  const operation = createScope(scope.signal, stage === "planner" ? LIMITS.plannerMs : LIMITS.answerMs);
+  const operation = createScope(scope.signal, stage === "analysis" ? 25_000 : stage === "image_answer" || stage === "verification" ? 20_000 : planner ? LIMITS.plannerMs : LIMITS.answerMs);
   try {
     const response = await operation.wait(fetch("https://api.deepseek.com/chat/completions", {
       method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.key}` },

@@ -11,7 +11,7 @@ The integrated demo needs verified browser behavior and a working Vercel release
 ## What Changes
 
 - Verify the full text/image conversation, retrieval, generation, and source-inspection flows with browser coverage.
-- Complete release verification of database and Storage access, server-only secrets, and Vercel environment configuration.
+- Complete release verification of database access, server-only secrets and Vercel environment configuration; verify curated Storage access only if an approved enabled capability requires curated assets. Visitor images require no bucket.
 - Deploy and verify the demo using agreed samples, reporting any limits of real-model validation.
 
 ## Impact
@@ -22,10 +22,10 @@ The integrated demo needs verified browser behavior and a working Vercel release
 
 ## Dependencies
 
-All seven preceding changes. Each change owns its behavior tests and necessary service access setup; this change verifies the integrated release.
+All seven preceding changes. Each change owns its behavior tests and necessary service access setup; this change verifies the integrated release. The approved, locally implemented requirement-6 change includes evidence-supported specific archive-work identification with selected visitor images and bounded rights-gated reference verification for ordinary unnumbered photos. Release acceptance must include numbered-positive, ordinary-unnumbered-positive and visually-similar-different-work-negative cases, including actual curated-asset permission/access for the reference branch; until representative records/images are available, identification quality remains unverified rather than deferred out of scope. Visitor selection/transport and fixture development remain independent of curated buckets; real reference-branch acceptance requires corresponding assets and reviewed permissions.
 
 ## Deferred Detail
 
-Browser test tooling, concrete acceptance samples, deployment environment details, and release procedure. Real identification quality requires agreed real records, images, and sources.
+Change-specific integrated browser cases using the existing Playwright/Chromium tooling and server-process upstream fixtures, concrete acceptance samples, deployment environment details, and release procedure. Real identification quality requires agreed real records, images, and sources.
 
 Add a technical design before implementation where required by the OpenSpec workflow. The accompanying spec records a minimum scope scenario, not a complete acceptance specification.

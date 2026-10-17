@@ -4,11 +4,11 @@
 
 On 2026-10-17, immediately after being asked to approve the existing detailed proposal and start A, the owner instructed continuation. This approves milestone A implementation on `feat/add-demo-release`; the proposal approval task is complete. It does not authorize new deployed provider charges, wider public funded access, a Production change or real-data preparation. No new product behavior was introduced.
 
-Local engineering is complete. Connected Vercel and the owner-authorized CLI login identify the existing project, current Production revision, root/build/Git settings, saved environment configuration, captured deployment environment names, effective function duration and sampled access. Task 3.1 is complete. A remains open for an actual disabled branch Preview, deployed active evaluation, owner/native-device review and actual rollback/retirement. B stays deferred; the whole change is not complete or ready for normal archival. The historical sessions below performed no assistant commit, push, deployment or environment mutation; subsequent actions must be recorded separately. No remote database write, real Storage request or paid provider call was performed.
+Local engineering and tasks 3.1–3.4 are complete. On 2026-10-18, authenticated inspection, guarded branch publication, the configured-disabled Git Preview, auxiliary no-service-credential Preview, deployed transport/browser checks and fresh matched Supabase inspection passed as recorded below. A remains open for the separately funded active batch, owner/native-device review and actual post-test rollback/retirement. B stays deferred; the whole change is not complete or ready for normal archival. No Production deployment/settings change, remote database write, real Storage request or paid provider call was performed.
 
 ## Tested Artifact
 
-Date: 2026-10-17, Australia/Perth. Node v24.22.0; installed Next.js 16.4.1. Base: `c841ea4c52ccd66bda906615dd35d8762195f942`, plus the uncommitted release engineering files below. Application source is unchanged from that base. Tests do not identify the current Vercel revision.
+Original local checks: 2026-10-17, Australia/Perth. Node v24.22.0; installed Next.js 16.4.1. Base: `c841ea4c52ccd66bda906615dd35d8762195f942`, plus the then-uncommitted release engineering files below, now committed through `37af0200b4670e486b9cfcda9ae48c1d6a99186c`. Application source is unchanged from that base. The deployed candidate identities and fresh checks are recorded separately below.
 
 The SHA-256 fingerprint of these sorted paths plus a NUL separator and each file's bytes is `e8fb73964fb1f46e185ac9040095176518fbce240d33e872536985a4bbedcf9b`:
 
@@ -29,15 +29,15 @@ The ordinary empty production reference manifest's SHA-256 is `fba23674ce4c0aec0
 | A01 | `npm run check`; route/vision/retrieval/component suites, new release SQL tests | Passed: 35 files / 406 tests, lint and TypeScript |
 | A02 | Existing six browser suites plus `demo-release.spec.ts`, actual isolated Next.js route | Passed: 107/107 Chromium tests |
 | A03 | Separate ordinary production build after fixture suite | Passed; AI/vision/fixtures explicitly false, ordinary manifest |
-| A04 | Existing `text-conversation.spec.ts`, route/config/vision tests | Local unavailable behavior passed; actual missing-settings/configured-disabled Preview not run |
-| A05 | Connected Vercel reads/anonymous GETs plus authenticated CLI project/API/build-log/function inspection | Current-project inspection passed, including root/default build settings, linked Production branch and actual 60-second chat function; new release-Preview configuration/access and reviewed active audience remain open |
-| A06 | Actual local-config anon eight-table/RPC smoke plus separate privileged read-only count/grant/RLS/function inspection; private comparison to saved Vercel Config values | Saved shared Preview/Production Supabase origin and publishable key match the inspected local configuration; actual new Preview and fresh Data API settings inspection remain open |
+| A04 | Existing tests plus configured Git and no-service-credential CLI Preview browser/HTTP checks | Passed: Chinese page, defined text/image unavailable outcomes, editable draft and reload without replay; no active generation acceptance inferred |
+| A05 | Connected/CLI identity/configuration/build/function inspection and exact deployed/browser/access evidence | Passed for disabled acceptance: ordinary Git Preview 37af020, matching project/scope, fixtures absent, actual 60-second chat function and existing SSO. Funded audience/window remains task 3.5 |
+| A06 | Private inherited-Config match, fresh anon eight-table/RPC reads, separate privileged counts/grants/RLS/function inspection and remote config pull | Passed for the configured Git Preview's matched archive: all eight counts zero; expected read access; Data API exposes thangka with max_rows=1000 |
 | A07 | `grounded-answers.spec.ts`, empty-name regressions, new composed empty lookup | Isolated behavior passed; actual deployed P01–P02 not run |
 | A08 | `image-interpretation.spec.ts`, continuity unit/component tests and new ordered journey | Isolated behavior passed; deployed P03–P06 not run |
 | A09 | `answer-sources.spec.ts`, presentation/answer-action tests; native copy in new journey | Isolated source/export behavior passed; owner review and actual empty reply copy not run |
 | A10 | Existing route/runtime/vision/text/image/source failures and browser correction/retry cases | Deterministic failure coverage passed; no paid fault injection needed |
-| A11 | Existing image count/preparation/route byte tests; prior public malformed-body recheck | Isolated limits and current public alias probes passed; exact new Preview identity/transport evidence remains open |
-| A12 | Existing reload tests plus composed native copy/reload and no-replay counters | Isolated behavior passed; deployed reload check not run |
+| A11 | Existing image/count/byte suites plus exact configured-Preview malformed HTTP probes | Passed: 4,000,000 bytes gives application 400/invalid_request, one over gives 413/request_too_large; JSON/no-store, no gateway substitution. Maximum-size successful generation is not established |
+| A12 | Isolated composed copy/reload/no-replay counters plus both disabled deployed browser targets | Disabled text/image/draft reload passed without replay; active successful-reply copy/reload remains within the future batch |
 | A13 | New ordered actual-route journey at all eight core viewports plus existing long-source/error/layout suites | Passed, with mobile/desktop screenshots inspected and intermediate/landscape/short-height checks |
 | A14 | Existing automated focus/clipboard/touch checks | Automated coverage passed; owner/native-device participation not run and must fit the active batch |
 | A15 | Prepared release/rollback runbook | Procedure prepared; actual disabled-final-state/rollback/direct-URL retirement not run |
@@ -91,14 +91,14 @@ Prior safe public-alias checks are recorded in [review.md](review.md#owner-recon
 
 The [runbook](../../../docs/demo-release.md) contains the six fixed Chinese questions/actions, five synthetic inputs, session boundaries, P05 missing-detail eligibility, dispatch/usage accounting and final-state/rollback procedure. Original image bytes/hashes are generated; browser-prepared copies, exact Preview, reviewer audience/window, owner participation and funded allowance must be frozen before activation/dispatch. These are pending prerequisites, not failed model cases.
 
-Current deployed active ledger: P01–P06 not run, zero application/provider dispatches by this session. No observed cloud-model usage is available; no numerical billing claim is inferred. Proposed future maximum six submissions/twelve calls still requires its concrete scope decision. If unavailable/failed, stop and retain the result without retries/substitution; missing completion logs never refund allowance.
+Current deployed active ledger: P01–P06 not run, zero active provider-bearing dispatches. Disabled application requests are counted separately below and terminate before provider access in the accepted route. No observed cloud-model usage or billing amount is inferred. Proposed future maximum six submissions/twelve calls still requires its concrete scope decision. If unavailable/failed, stop and retain the result without retries/substitution; missing completion logs never refund allowance.
 
 ## Remaining Work
 
-1. Task 3.1 is complete through the newly authenticated CLI, as recorded in the follow-up below; no further owner login/configuration screenshot is needed for that inspection.
-2. Prepare the exact commit/Preview/configuration/access action, preserving Production. Before publishing `feat/add-demo-release`, give only that branch explicit Preview overrides `DEEPSEEK_ENABLED=false` and `DEEPSEEK_VISION_ENABLED=false`: shared Preview currently enables text and Git deployment creation is enabled. Keep fixtures absent/false and the accepted model. Then create the authorized ordinary disabled Preview, verify its actual settings and match its Supabase origin/category to the independently inspected archive; inspect current Data API settings before closing A06.
-3. Freeze browser-prepared smoke inputs, exact target/window/audience and owner participation; agree funded limits, execute/review the one bounded batch, and verify actual copy/reload/native-device results within it.
-4. Exercise rollback/final disabled state and retirement/control of enabled test direct URLs. Keep A and whole acceptance open until evidence exists; B stays deferred without new data requests.
+1. Tasks 3.1–3.4 are complete; no further account login/configuration screenshot is needed. Use the configured Git Preview below, not the auxiliary no-service-credential deployment or a generic latest-Preview selector. Refresh affected evidence if its code/configuration changes.
+2. Agree the active target/window/audience, funded allowance and owner desktop/mobile participation; freeze actual browser-prepared P01–P06 inputs for that agreed execution. Both test targets currently remain disabled.
+3. Execute/review the one bounded batch, including actual copy/reload/native-device checks within the agreed submissions. Do not enable a provider or dispatch a question before those prerequisites are resolved.
+4. Exercise post-test rollback/final disabled state and retirement/control of any enabled test direct URLs. Keep A and whole acceptance open until evidence exists; B stays deferred without new data requests.
 
 ## Earlier Vercel Connection Retry
 
@@ -209,3 +209,53 @@ Guarded commit `b7b539e5cd433fdf82aa48c818be42ba1341c245` was published to `orig
 | `DEEPSEEK_VISION_ENABLED` | `9TkHczXNvIbi7TOb` | `false`; only Preview, only `feat/add-demo-release` |
 
 Each new Config value was privately read back and verified exactly false. The complete returned variable metadata retains the original five shared entries with the same IDs, targets and edit timestamps. The project account, Production deployment `dpl_8JNNKR9vqpvs7X44Vy2PsRtLMSv8` and SSO protection remain unchanged. The ordinary candidate removes the temporary Git guard after these checks; its push can now trigger the intended disabled Preview. No provider request was dispatched.
+
+## Disabled Preview Acceptance Results
+
+All results in this section are dated 2026-10-18, Australia/Perth. Final ordinary source commit is `37af0200b4670e486b9cfcda9ae48c1d6a99186c`; the temporary Git guard is absent. The engineering fingerprint still matches the original tested artifact. The accepted source retains the ordinary empty reference manifest. New cloud builds are ordinary Next.js builds, not fixture deployments.
+
+| Target | Exact identity and configuration |
+| --- | --- |
+| Configured Git Preview | `dpl_EKPXaUsrDKg1XcvZ5eAdKZ5UytJU`, [immutable URL](https://jinlan-thangka-pbe8gkx4a-crazydave0522s-projects.vercel.app/), READY, Git source feat/add-demo-release at 37af020; Node 24, chat timeout 60 seconds; build-to-ready 20.021 seconds |
+| Configured branch alias | [release Preview](https://jinlan-thangka-git-feat-add-demo-a59493-crazydave0522s-projects.vercel.app/); alias API independently confirms it maps to the configured Git deployment above |
+| Configured service state | Existing inherited Supabase Config and accepted model, both branch-only switches read back false, provider key inherited but not used, fixtures absent from deployment environment names |
+| Auxiliary no-service-credential Preview | `dpl_HkSqRacogh6332bLUAPr99MvreaR`, [immutable URL](https://jinlan-thangka-mx1wqbwy1-crazydave0522s-projects.vercel.app/), READY, source is a CLI upload of git archive 37af020; Node 24, chat timeout 60 seconds; build-to-ready 20.529 seconds; no aliases |
+| Auxiliary overrides | Supabase URL/publishable key and provider key explicitly empty in both build/runtime; model deepseek-flash, both switches false and fixtures false. These are deployment-only overrides; project and branch settings are unchanged. Empty service values exercise unconfigured behavior, not a successfully read empty archive |
+
+CLI deployment preflight checked all 226 upload files from the isolated commit archive; no local environment, generated evaluation or .vercel files were uploaded. The auxiliary deployment has CLI provenance, not a new Git commit or separate Git checkout. The project's latest Preview selector may refer to this auxiliary target; use the explicit configured Git URL/branch alias for subsequent active preparation.
+
+### Configured HTTP and Browser Checks
+
+Authenticated homepage GET returned 200 with Chinese title, lang=zh-CN and the expected empty landing. Exact immutable /api/chat checks returned:
+
+| Probe | Actual outcome |
+| --- | --- |
+| GET | 405 |
+| POST text/plain, {} | 415 / unsupported_media_type |
+| POST application/json, {} | 400 / invalid_request |
+| Malformed application/json, exactly 4,000,000 bytes | 400 / invalid_request |
+| Same malformed body, exactly 4,000,001 bytes | 413 / request_too_large |
+| Valid text request | 503 / generation_unavailable |
+| Valid synthetic selected-image request | 422 / image_understanding_unavailable |
+
+Every POST response is application/json with Cache-Control: no-store. The byte-boundary responses are application outcomes, not gateway substitutes. End-to-end CLI/request elapsed times were 2.261–9.111 seconds, including authentication, process startup and transfer; these are not provider latency measurements.
+
+Actual hosted Chromium at 1366×768 and 390×844 passed hydration, Chinese landing, composer, desktop text 503 and mobile Worker-prepared image 422, editable independent draft, reachable send control, no horizontal overflow/page errors, and deliberate reload clearing page-local state without another POST. Inspected both retained screenshots under ignored evaluation-results/demo-release-disabled/: readable unavailable notice, proportional selected image, reachable composer and separate footer. These are browser automation results, not owner/native-mobile acceptance.
+
+The first ad hoc desktop browser check submitted a correctly rejected disabled text request, then incorrectly expected the send button to be enabled with an empty composer. The accepted behavior disables that empty button. The corrected check types an independent draft before testing the enabled control and passed on both widths; no product code changed. Configured-target accounting: seven HTTP route probes (one GET, four invalid POSTs, two valid disabled POSTs), plus three valid disabled browser POSTs including that initial desktop attempt. Active P01–P06 dispatches remain zero. Auxiliary browser accounting is two further valid disabled POSTs.
+
+The auxiliary browser passed homepage/hydration with no service credentials, text 503 and image 422, JSON/no-store, independent draft editing and reload without replay or page errors. This establishes the missing-service and configured-disabled cases separately. It does not establish live model quality, active image generation, real citation support, native keyboard/clipboard behavior or successful maximum-size image generation.
+
+### Fresh Matched Archive Inspection
+
+The configured Git Preview inherits the independently matched Supabase origin/publishable key; there is no Supabase branch override. Fresh publishable/anon smoke returned HTTP 200 for all eight table projections and the search RPC. Separate CLI 2.121.0 execution of the actual read-only inspection SQL used postgres, non-superuser with BYPASSRLS: all eight counts are zero, all tables are owned by postgres with RLS enabled/not forced, anon has schema USAGE and SELECT only, and exactly eight intended SELECT policies have USING (true). The single expected search function remains STABLE SECURITY INVOKER with empty search_path, anon EXECUTE and no PUBLIC EXECUTE. No row, schema, policy, grant or Storage object was changed.
+
+A remote config pull into a disposable local template confirms Data API enabled, schemas public/graphql_public/thangka, extra search path public/extensions and max_rows=1000. Its first attempt lacked an initialized local template and failed without writing remote settings; initializing only the disposable local template resolved it. The copied configuration was deleted after selecting these safe fields. The initial sandbox CLI-help attempt could not write telemetry; permitted CLI execution resolved it. The anon smoke emitted the known Node module-type warning but all checks passed; package configuration was not changed for that warning. Task 3.3/A06 is passed for the configured Git target's matched archive, not for the auxiliary intentionally unconfigured target.
+
+### Access and Final State
+
+The first vercel curl attempt generated an automation-bypass credential using its supported automatic access flow, then native curl rejected the forwarded --non-interactive option. Removing that unsupported forwarded flag resolved access. The new credential was identified by exact creation time/user/scope and revoked with regenerate=false after HTTP checks; the project then reports zero automation-bypass credentials. Its value was never printed or committed. Browser checks used a separately issued short-lived development OIDC token, attached only to the exact Preview origin with other origins blocked. Local project linking/token files were created in disposable directories, leaving the owner's .env.local untouched; credential-bearing temporary copies are removed after checks.
+
+The configured branch alias remains mapped to its Git deployment. Original shared variable IDs/scopes/edit timestamps and Production deployment dpl_8JNNKR9vqpvs7X44Vy2PsRtLMSv8 remain unchanged. Both test deployments retain false generation/vision settings and existing SSO. After credential revocation, anonymous page/API GETs on both immutable test URLs and the configured branch alias all return 302 to vercel.com/sso-api; the Production public page/API remain 200/405. Both task-owned temporary directories were removed, including local OIDC/link files and the auxiliary source copy. No enabled test deployment was created in this batch. This initial disabled checkpoint does not replace post-active rollback/direct-URL retirement or the future owner/device and funded acceptance.
+
+Final documentation checks pass: all eight OpenSpec items in strict mode, 129 local links and 21 heading fragments across thirteen documents, and git diff --check. The engineering fingerprint is unchanged. Post-deployment evidence updates are documentation only and are retained separately from the published 37af020 candidate; do not relabel its checks or trigger another build merely to publish its result record. The change now has 14/22 tasks complete. Active scope and owner/device participation have been requested but not yet received in this record; the proposed 60-minute/six-submission/twelve-call batch is not authorization by itself. Both model switches remain false while awaiting that input.

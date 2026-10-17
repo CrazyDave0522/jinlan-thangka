@@ -200,3 +200,12 @@ Fresh `npm run check` passes lint, TypeScript and all 35 files / 406 tests (6.35
 The prepared local acceptance commit is `b281223c714c5d7d4127c58f36b2306e6a36736d`. An attempt to create the two false Preview overrides before publication returned HTTP 400: branch `feat/add-demo-release` was not found in the connected Git repository. No branch was pushed or deployment created by that failed attempt. The platform requires the remote branch to exist before branch-scoped variables can be created.
 
 The corrected initial-publication procedure uses a temporary `vercel.json` with only `git.deploymentEnabled["feat/add-demo-release"]=false`. Publish that guarded commit first, verify no branch deployment, create/verify the two branch-only false Config overrides, then remove the guard and publish the ordinary candidate. The [official Git configuration](https://vercel.com/docs/project-configuration/git-configuration), checked 2026-10-18, documents branch-specific disabling with other branches defaulting to enabled. No shared/Production setting or broader Git deployment setting is changed. Record the guarded and final commits, actual variable metadata and resulting deployment below; a planned procedure alone is not a pass.
+
+Guarded commit `b7b539e5cd433fdf82aa48c818be42ba1341c245` was published to `origin/feat/add-demo-release`; the subsequent explicit branch-deployment query returned zero results. With the remote branch present, the connected Vercel create operation succeeded for both entries, with no failed entries:
+
+| Branch Config override | ID | Verified value / target |
+| --- | --- | --- |
+| `DEEPSEEK_ENABLED` | `MH9U6ZQZrRTwphKp` | `false`; only Preview, only `feat/add-demo-release` |
+| `DEEPSEEK_VISION_ENABLED` | `9TkHczXNvIbi7TOb` | `false`; only Preview, only `feat/add-demo-release` |
+
+Each new Config value was privately read back and verified exactly false. The complete returned variable metadata retains the original five shared entries with the same IDs, targets and edit timestamps. The project account, Production deployment `dpl_8JNNKR9vqpvs7X44Vy2PsRtLMSv8` and SSO protection remain unchanged. The ordinary candidate removes the temporary Git guard after these checks; its push can now trigger the intended disabled Preview. No provider request was dispatched.

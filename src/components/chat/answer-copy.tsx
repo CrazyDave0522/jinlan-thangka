@@ -12,6 +12,7 @@ import {
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { exportAnswer, type DisplayAnswer } from "@/lib/answers/presentation";
 import {
   AnswerActionsContext,
@@ -20,6 +21,8 @@ import {
 } from "./answer-actions-context";
 
 export const COPY_WAIT_MS = 5_000;
+export const COPY_SUCCESS_MS = 2_000;
+export const COPY_PENDING_MS = 300;
 const READY_COPY = "等待已结束，可再次点击复制。";
 type Status = "idle" | "pending" | "success" | "failure" | "waiting" | "busy" | "ready";
 export function AnswerCopy({ answer }: { answer: DisplayAnswer }) {
@@ -33,6 +36,7 @@ export function AnswerCopy({ answer }: { answer: DisplayAnswer }) {
   );
   const read = useAnswerReading();
   const [status, setStatus] = useState<Status>("idle");
+  const [pendingVisible, setPendingVisible] = useState(false);
   const [fallback, setFallback] = useState(false);
   const mounted = useRef(false);
   const active = useRef<{
@@ -80,8 +84,18 @@ export function AnswerCopy({ answer }: { answer: DisplayAnswer }) {
       if (active.current?.timer) clearTimeout(active.current.timer);
     };
   }, []);
+  useEffect(() => {
+    if (status !== "pending") return;
+    const timer = setTimeout(() => setPendingVisible(true), COPY_PENDING_MS);
+    return () => clearTimeout(timer);
+  }, [status]);
+  useEffect(() => {
+    if (status !== "success") return;
+    const timer = setTimeout(() => setStatus("idle"), COPY_SUCCESS_MS);
+    return () => clearTimeout(timer);
+  }, [status]);
   function copy() {
-    if (!output) return;
+    if (!output || status === "success") return;
     const release = coordinator.acquire();
     if (!release) {
       setFallback(true);
@@ -93,6 +107,7 @@ export function AnswerCopy({ answer }: { answer: DisplayAnswer }) {
       timer: null as ReturnType<typeof setTimeout> | null,
     };
     active.current = attempt;
+    setPendingVisible(false);
     setStatus("pending");
     attempt.timer = setTimeout(() => {
       attempt.waiting = true;
@@ -135,32 +150,45 @@ export function AnswerCopy({ answer }: { answer: DisplayAnswer }) {
       ? "另一条回答正在复制，可先选择下方内容。"
       : "另一条回答正在复制；可再次点击复制展开文本。",
   }[status];
+  const confirmed = status === "success";
   return (
     <div className="space-y-2 border-t pt-3" aria-label="回答复制操作">
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          ref={button}
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="scroll-m-3"
-          aria-label="复制回答"
-          aria-describedby={feedback ? `${id}-status` : undefined}
-          disabled={!output}
-          onClick={copy}
-        >
-          {status === "success" ? (
-            <Check aria-hidden="true" />
-          ) : (
-            <Copy aria-hidden="true" />
-          )}
-        </Button>
+        <div className="relative flex shrink-0 items-center">
+          <Button
+            ref={button}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="scroll-m-3 data-disabled:pointer-events-none data-disabled:active:translate-y-0"
+            aria-label="复制回答"
+            aria-describedby={feedback ? `${id}-status` : undefined}
+            disabled={!output || status === "success"}
+            focusableWhenDisabled={status === "success"}
+            onClick={copy}
+          >
+            <span aria-hidden="true" className="grid size-4 place-items-center">
+              <Copy className={cn("col-start-1 row-start-1 transition-opacity duration-200 ease-out motion-reduce:transition-none", confirmed ? "opacity-0" : "opacity-100")} />
+              <Check className={cn("col-start-1 row-start-1 transition-opacity duration-200 ease-out motion-reduce:transition-none", confirmed ? "opacity-100" : "opacity-0")} />
+            </span>
+          </Button>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute left-full ml-2 whitespace-nowrap text-xs text-muted-foreground transition-opacity duration-200 ease-out motion-reduce:transition-none",
+              confirmed ? "opacity-100" : "opacity-0",
+              status !== "idle" && !confirmed && "invisible",
+            )}
+          >
+            已复制
+          </span>
+        </div>
         {feedback && (
           <p
             id={`${id}-status`}
             role="status"
             aria-label="复制状态"
-            className="text-xs text-muted-foreground"
+            className={cn("text-xs text-muted-foreground", (confirmed || (status === "pending" && !pendingVisible)) && "sr-only")}
           >
             {feedback}
           </p>

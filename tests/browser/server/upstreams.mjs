@@ -35,7 +35,16 @@ Server.prototype.emit = function (event, ...args) {
 const artist = JSON.parse(readFileSync(new URL("./artist.json", import.meta.url), "utf8"));
 const vision = JSON.parse(readFileSync(new URL("./vision-archive.json", import.meta.url), "utf8"));
 const artworkId = (n) => `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
-const greeting = "您好！请告诉我您想了解的具体内容。";
+const greeting = "您好！我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格、人物和作品背景等问题。您想了解什么？";
+// Deterministic provider outputs exercise contextual replies without paid model calls.
+function greetingReply(context) {
+  const question = context.at(-1).text;
+  if (question === "早上好") return "早上好！想从唐卡的哪个话题聊起？";
+  if (question !== "你好") return null;
+  return context.some((message) => message.role === "assistant" && message.text.includes(greeting))
+    ? "又见面了！接着聊些什么？"
+    : greeting;
+}
 const attempts = new Map();
 let permissionReads = 0;
 const originalFetch = globalThis.fetch;
@@ -97,7 +106,7 @@ function visionCompletion(payload, data, question) {
     if (question.includes("[vision:corrected-number-conflict]")) comparisons[0] = { taskId: "V1", assessment: "different_work", proofs: [{ evidenceKey: comparisons[0].proofs[1].evidenceKey, quote: "右下角有一处独特的白色莲花", kind: "local_detail", finding: "mismatch", visitorRegion: "bottom_right", referenceRegion: "bottom_right" }], contradictions: ["编号虽已读清，右下角花瓣仍与档案参考图不同。"] };
   }
   let text = data.observations.length ? "本次观察到中央人物及周围侍者，题材解读仍需结合细节核实。" : "沿用此前观察，人物两侧可见侍者；不能据此辨认新的小字。";
-  if (question === "你好") text = greeting;
+  text = greetingReply(data.context) ?? text;
   if (question.includes("[vision:duplicate-marker]")) text = "可见中央人物。[图片1]";
   if (question.includes("[vision:duplicate-notice]")) text = "本次未检索数据库。视觉描述只对应已供观察。";
   return completion({ blocks: [{ kind: observations.length ? "visual" : "general", text, evidenceKeys: [], observationIds: observations.map((o) => o.id) }], comparisons, observationUpdates });
@@ -125,10 +134,11 @@ globalThis.fetch = async (input, options = {}) => {
     if (payload.max_tokens === 1024) {
       if (question.includes("[fixture:clarify]")) return completion({ action: "clarify", question: "你想了解哪位画师或哪件作品？" });
       if (question.includes("[fixture:image]")) return completion({ action: "needs_image" });
-      return completion({ action: "answer", queries: question === "你好" || question.includes("[fixture:general]") || question.includes("[fixture:slow]") ? [] : [{ kind: "search", entity: "artist", filters: [{ field: "name", value: question.includes("[fixture:empty]") ? "无匹配" : "测试画师", mode: "exact" }], limit: 5 }] });
+      return completion({ action: "answer", queries: greetingReply(data.context) || question.includes("[fixture:general]") || question.includes("[fixture:slow]") ? [] : [{ kind: "search", entity: "artist", filters: [{ field: "name", value: question.includes("[fixture:empty]") ? "无匹配" : "测试画师", mode: "exact" }], limit: 5 }] });
     }
     if (question.includes("[fixture:invalid]")) return completion({ blocks: [{ kind: "archive", text: "伪造引用", evidenceKeys: ["E999999"] }] });
-    if (question === "你好") return completion({ blocks: [{ kind: "general", text: greeting, evidenceKeys: [] }] });
+    const greetingText = greetingReply(data.context);
+    if (greetingText) return completion({ blocks: [{ kind: "general", text: greetingText, evidenceKeys: [] }] });
     const fact = data.catalogue.find((f) => f.field === "biography");
     return completion({ blocks: [
       ...(fact ? [{ kind: "archive", text: `该画师的档案生平记载：${fact.value}`, evidenceKeys: [fact.key] }] : []),

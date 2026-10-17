@@ -140,6 +140,14 @@ The system SHALL validate the finalized image-interpretation design's extended s
 - **THEN** its body and plain-text copy SHALL omit the supplement heading while preserving paragraph order and applicable retrieval notices
 - **AND** general blocks alongside archive or image-observation blocks SHALL retain their distinct knowledge heading; canonical history and validated response contracts remain unchanged.
 
+#### Scenario: Generate contextual greetings and role introductions
+
+- **WHEN** a visitor greets the assistant or asks what it can help with
+- **THEN** the reply SHALL be model-generated from the current wording and supplied conversation context, without a prescribed greeting sentence or application-supplied replacement
+- **AND** a simple greeting MAY receive a brief greeting and invitation rather than a full introduction; the model SHALL be guided to avoid repeating an earlier introduction and to prioritize a substantive question when one accompanies the greeting
+- **AND** when describing its role, the assistant SHALL describe helping answer Thangka questions using available archive information and relevant knowledge, including explanation and context
+- **AND** archive lookup SHALL be presented as one supporting capability; the introduction SHALL NOT imply that retrieval, image inspection or factual confirmation has already occurred, or promise authenticity or certain attribution.
+
 #### Scenario: Preserve a newer draft when correcting a failed question
 
 - **WHEN** a server-side corrective failure arrives after dispatch while the user has entered a next draft or selected next images

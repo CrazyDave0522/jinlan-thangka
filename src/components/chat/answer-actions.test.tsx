@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { ChatInterface } from "./chat-interface";
-import { COPY_WAIT_MS } from "./answer-copy";
+import { COPY_PENDING_MS, COPY_SUCCESS_MS, COPY_WAIT_MS } from "./answer-copy";
 import { exportAnswer } from "@/lib/answers/presentation";
 import { canonicalImage, parseAssistantV2 } from "@/lib/vision/output";
 import {
@@ -163,7 +163,7 @@ it("preserves image-answer disclosure and partial selection across equivalent co
 });
 
 it("copies the same full answer with sources closed/open, and awaits actual success", async () => {
-  const user = userEvent.setup();
+  vi.useFakeTimers();
   const pending = deferred();
   const write = clipboard(
     vi.fn().mockReturnValueOnce(pending.promise).mockResolvedValue(undefined),
@@ -171,21 +171,158 @@ it("copies the same full answer with sources closed/open, and awaits actual succ
   const answer = sourceAnswer();
   render(<ChatInterface messages={[answer]} />);
   const copy = screen.getByRole("button", { name: "复制回答" });
-  await user.click(copy);
+  fireEvent.click(copy);
   expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent(
     "正在复制",
   );
-  expect(screen.queryByText("已复制")).not.toBeInTheDocument();
+  expect(screen.queryAllByRole("status", { name: "复制状态" }).some((node) => node.textContent === "已复制")).toBe(false);
   await act(async () => pending.resolve());
   expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent(
     "已复制",
   );
-  await user.click(screen.getByRole("button", { name: "查看来源" }));
-  await user.click(copy);
+  fireEvent.click(screen.getByRole("button", { name: "查看来源" }));
+  await act(async () => vi.advanceTimersByTime(COPY_SUCCESS_MS));
+  fireEvent.click(copy);
+  await act(async () => {});
   expect(write.mock.calls.map((call) => call[0])).toEqual([
     exportAnswer(answer),
     exportAnswer(answer),
   ]);
+});
+
+it("restores the copy icon after two seconds and ignores repeated success activation without losing focus", async () => {
+  vi.useFakeTimers();
+  const pending = deferred();
+  const write = clipboard(vi.fn().mockReturnValueOnce(pending.promise).mockResolvedValue(undefined));
+  const answer = sourceAnswer();
+  render(<ChatInterface messages={[answer]} />);
+  const copy = screen.getByRole("button", { name: "复制回答" });
+  copy.focus();
+  fireEvent.click(copy);
+  await act(async () => pending.resolve());
+  expect(copy).toHaveFocus();
+  expect(copy).toHaveAttribute("aria-disabled", "true");
+  expect(copy).not.toBeDisabled();
+  expect(copy.querySelector("svg.lucide-check")).toHaveClass("opacity-100");
+  expect(copy.querySelector("svg.lucide-copy")).toHaveClass("opacity-0");
+  expect(screen.getAllByText("已复制")).toHaveLength(2);
+  expect(screen.getAllByRole("status", { name: "复制状态" })).toHaveLength(1);
+  fireEvent.click(copy);
+  fireEvent.keyDown(copy, { key: "Enter" });
+  fireEvent.keyUp(copy, { key: "Enter" });
+  fireEvent.keyDown(copy, { key: " " });
+  fireEvent.keyUp(copy, { key: " " });
+  expect(write).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+  await act(async () => vi.advanceTimersByTime(1_999));
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+  await act(async () => vi.advanceTimersByTime(1));
+  expect(screen.queryByRole("status", { name: "复制状态" })).not.toBeInTheDocument();
+  expect(screen.getByText("已复制")).toHaveAttribute("aria-hidden", "true");
+  expect(copy).not.toHaveAttribute("aria-disabled", "true");
+  expect(copy.querySelector("svg.lucide-copy")).toHaveClass("opacity-100");
+  expect(copy.querySelector("svg.lucide-check")).toHaveClass("opacity-0");
+  expect(copy).toHaveFocus();
+  expect(write).toHaveBeenCalledTimes(1);
+  fireEvent.click(copy);
+  await act(async () => {});
+  expect(write).toHaveBeenCalledTimes(2);
+  expect(write.mock.calls.every(([text]) => text === exportAnswer(answer))).toBe(true);
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+});
+
+it("skips a visible pending flash on quick success and starts a fresh visibility delay for the next write", async () => {
+  vi.useFakeTimers();
+  const first = deferred(), second = deferred();
+  const write = clipboard(vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise));
+  const { unmount } = render(<ChatInterface messages={[sourceAnswer()]} />);
+  const copy = screen.getByRole("button", { name: "复制回答" });
+  fireEvent.click(copy);
+  const pending = screen.getByRole("status", { name: "复制状态" });
+  expect(pending).toHaveTextContent("正在复制");
+  expect(pending).toHaveClass("sr-only");
+  await act(async () => vi.advanceTimersByTime(299));
+  expect(pending).toHaveClass("sr-only");
+  await act(async () => first.resolve());
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+  expect(vi.getTimerCount()).toBe(1);
+  await act(async () => vi.advanceTimersByTime(COPY_SUCCESS_MS));
+  fireEvent.click(copy);
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveClass("sr-only");
+  await act(async () => vi.advanceTimersByTime(COPY_PENDING_MS - 1));
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveClass("sr-only");
+  await act(async () => vi.advanceTimersByTime(1));
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("正在复制");
+  expect(screen.getByRole("status", { name: "复制状态" })).not.toHaveClass("sr-only");
+  expect(write).toHaveBeenCalledTimes(2);
+  unmount();
+  expect(vi.getTimerCount()).toBe(0);
+  await act(async () => second.resolve());
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it("keeps success intervals answer-local without extending them on incidental rerenders", async () => {
+  vi.useFakeTimers();
+  const write = clipboard();
+  const messages = [sourceAnswer(), sourceAnswer("第二条生平", sourceId(9002))];
+  const { rerender } = render(<ChatInterface messages={messages} />);
+  const [first, second] = answerItems().map((item) => within(item));
+  fireEvent.click(first.getByRole("button", { name: "复制回答" }));
+  await act(async () => {});
+  await act(async () => vi.advanceTimersByTime(500));
+  fireEvent.click(second.getByRole("button", { name: "复制回答" }));
+  await act(async () => {});
+  expect(write).toHaveBeenCalledTimes(2);
+  rerender(<ChatInterface messages={[...messages]} />);
+  await act(async () => vi.advanceTimersByTime(COPY_SUCCESS_MS - 500));
+  expect(first.queryByRole("status", { name: "复制状态" })).not.toBeInTheDocument();
+  expect(second.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+  await act(async () => vi.advanceTimersByTime(500));
+  expect(second.queryByRole("status", { name: "复制状态" })).not.toBeInTheDocument();
+  expect(write).toHaveBeenCalledTimes(2);
+});
+
+it("preserves manual text and partial selection through retry success and reset, and can dismiss during success", async () => {
+  vi.useFakeTimers();
+  const pending = deferred();
+  const write = clipboard(vi.fn().mockRejectedValueOnce(new Error("Denied")).mockReturnValueOnce(pending.promise).mockResolvedValue(undefined));
+  render(<ChatInterface messages={[sourceAnswer()]} />);
+  const copy = screen.getByRole("button", { name: "复制回答" });
+  fireEvent.click(copy);
+  await act(async () => {});
+  const field = screen.getByRole<HTMLTextAreaElement>("textbox", { name: "本条回答的复制文本" });
+  field.focus();
+  field.setSelectionRange(3, 12, "backward");
+  await act(async () => vi.advanceTimersByTime(COPY_SUCCESS_MS));
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("暂时无法自动复制");
+  fireEvent.click(copy);
+  await act(async () => pending.resolve());
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+  await act(async () => vi.advanceTimersByTime(COPY_SUCCESS_MS));
+  expect(screen.getByRole("textbox", { name: "本条回答的复制文本" })).toBe(field);
+  expect(field).toHaveFocus();
+  expect([field.selectionStart, field.selectionEnd, field.selectionDirection]).toEqual([3, 12, "backward"]);
+  expect(screen.queryByRole("status", { name: "复制状态" })).not.toBeInTheDocument();
+  fireEvent.click(copy);
+  await act(async () => {});
+  expect(copy).toHaveAttribute("aria-disabled", "true");
+  fireEvent.click(screen.getByRole("button", { name: "收起复制文本" }));
+  expect(copy).toHaveFocus();
+  expect(screen.queryByRole("textbox", { name: "本条回答的复制文本" })).not.toBeInTheDocument();
+  await act(async () => vi.advanceTimersByTime(COPY_SUCCESS_MS));
+  expect(copy).toHaveFocus();
+  expect(write).toHaveBeenCalledTimes(3);
+});
+
+it("cleans up the success reset when its answer unmounts", async () => {
+  vi.useFakeTimers();
+  clipboard();
+  const { unmount } = render(<ChatInterface messages={[sourceAnswer()]} />);
+  fireEvent.click(screen.getByRole("button", { name: "复制回答" }));
+  await act(async () => {});
+  expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
+  unmount();
+  expect(vi.getTimerCount()).toBe(0);
 });
 
 it.each(["missing", "throw", "reject"])(
@@ -228,7 +365,7 @@ it.each(["missing", "throw", "reject"])(
     if (mode !== "missing") {
       write.mockResolvedValue(undefined);
       await user.click(screen.getByRole("button", { name: "复制回答" }));
-      expect(screen.getByText("已复制")).toBeInTheDocument();
+      expect(screen.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
     }
   },
 );
@@ -261,7 +398,7 @@ it.each(["resolve", "reject"] as const)("arbitrates writes and retains the lease
   fireEvent.click(second.getByRole("button", { name: "复制回答" }));
   expect(write).toHaveBeenCalledTimes(1);
   await act(async () => pending[settle]());
-  expect(screen.queryByText("已复制")).not.toBeInTheDocument();
+  expect(screen.queryAllByRole("status", { name: "复制状态" }).some((node) => node.textContent === "已复制")).toBe(false);
   expect(
     first.queryByRole("textbox", { name: "本条回答的复制文本" }),
   ).not.toBeInTheDocument();
@@ -269,7 +406,7 @@ it.each(["resolve", "reject"] as const)("arbitrates writes and retains the lease
   fireEvent.click(second.getByRole("button", { name: "复制回答" }));
   await act(async () => {});
   expect(write).toHaveBeenCalledTimes(2);
-  expect(second.getByText("已复制")).toBeInTheDocument();
+  expect(second.getByRole("status", { name: "复制状态" })).toHaveTextContent("已复制");
   expect(
     second.getByRole("textbox", { name: "本条回答的复制文本" }),
   ).toBeInTheDocument();
@@ -291,7 +428,7 @@ it("keeps a removed message's actual write guarded until settlement and suppress
   await user.click(screen.getByRole("button", { name: "复制回答" }));
   expect(write).toHaveBeenCalledTimes(1);
   await act(async () => pending.reject());
-  expect(screen.queryByText("已复制")).not.toBeInTheDocument();
+  expect(screen.queryAllByRole("status", { name: "复制状态" }).some((node) => node.textContent === "已复制")).toBe(false);
   await user.click(screen.getByRole("button", { name: "复制回答" }));
   expect(write).toHaveBeenCalledTimes(2);
 });

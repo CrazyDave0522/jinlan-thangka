@@ -11,7 +11,7 @@ import type { ImageRequest } from "../../src/lib/vision/types";
 export const sourceId = (n: number) =>
   `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
 export function generalAnswer(version: 1 | 2) {
-  const text = "您好！请告诉我您想了解的具体内容。";
+  const text = "您好！我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格、人物和作品背景等问题。您想了解什么？";
   if (version === 1) {
     const message: AssistantMessage = { id: sourceId(9000), role: "assistant", kind: "answer", text: "", blocks: [{ kind: "general", text, evidenceKeys: [] }], references: [], notices: ["no_retrieval"] };
     message.text = canonical(message);

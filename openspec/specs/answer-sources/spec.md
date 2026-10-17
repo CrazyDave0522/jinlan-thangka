@@ -167,6 +167,14 @@ The system SHALL copy only after explicit activation and provide accurate timely
 - **WHEN** `复制回答` is activated and the write resolves before the five-second waiting state is entered
 - **THEN** only the chosen answer export is written and Chinese success feedback appears after resolution
 - **AND** an immediate page-wide write guard prevents duplicate/concurrent automatic writes without locking conversation submission, source navigation or selectable-text access.
+- **AND** pending feedback SHALL remain visually hidden for the first 300 milliseconds while its accurate accessible status is available immediately; faster completion SHALL skip the visible pending label, while a still-unresolved write SHALL reveal progress without delaying success, failure or the five-second waiting state.
+
+#### Scenario: Restore the copy control after success
+
+- **WHEN** a clipboard write completes successfully before entering the waiting state
+- **THEN** the chosen answer SHALL show its success icon and `已复制` feedback for two seconds, ignore repeated pointer/keyboard activation during that feedback and then restore the normal copy icon and explicit copy action
+- **AND** this feedback interval SHALL remain local to that answer, preserve focus and any open manual-copy text/selection, and SHALL NOT restart on incidental updates, initiate another write or change an unresolved write guard; its timer SHALL be cleaned up when the component unmounts.
+- **AND** the icons and success hint SHALL use brief opacity transitions without moving the control or surrounding content, respect the visitor's reduced-motion preference and keep accessible feedback synchronized with the actual copy state rather than a decorative exit transition.
 
 #### Scenario: Recover from missing or denied access
 

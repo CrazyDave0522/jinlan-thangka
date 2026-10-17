@@ -7,7 +7,7 @@ for (const viewport of viewports) test(`greetings render without a supplement he
   await page.getByRole("textbox", { name: "消息内容" }).fill("你好");
   await page.getByRole("button", { name: "发送消息" }).click();
   const answer = page.getByRole("listitem", { name: "雪域金澜的回答" });
-  await expect(answer.getByText("您好！请告诉我您想了解的具体内容。", { exact: true })).toBeVisible();
+  await expect(answer.getByText("您好！我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格、人物和作品背景等问题。您想了解什么？", { exact: true })).toBeVisible();
   await expect(answer.getByRole("heading")).toHaveCount(0);
   await expect(answer.getByRole("region", { name: "通用知识补充" })).toHaveCount(0);
   await expect(answer.getByText("本次未检索数据库。", { exact: true })).toBeVisible();
@@ -17,6 +17,29 @@ for (const viewport of viewports) test(`greetings render without a supplement he
   const send = await page.getByRole("button", { name: "发送消息" }).boundingBox();
   expect(send!.y + send!.height).toBeLessThan(viewport.height);
   if ([390,1366].includes(viewport.width)) await page.screenshot({ path: `test-results/greeting-${viewport.width}.png` });
+});
+for (const width of [390, 1366]) test(`model-written greeting variants survive consecutive turns at ${width}`, async ({ page }) => {
+  await page.setViewportSize({ width, height: width === 390 ? 844 : 768 });
+  await page.goto(home);
+  const replies = [
+    ["你好", "您好！我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格、人物和作品背景等问题。您想了解什么？"],
+    ["早上好", "早上好！想从唐卡的哪个话题聊起？"],
+    ["你好", "又见面了！接着聊些什么？"],
+  ];
+  for (const [index, [question, expected]] of replies.entries()) {
+    await page.getByRole("textbox", { name: "消息内容" }).fill(question);
+    const seen = page.waitForRequest((request) => request.url().endsWith("/api/chat"));
+    await page.getByRole("button", { name: "发送消息" }).click();
+    const sent = (await seen).postDataJSON();
+    if (index > 0) expect(sent.messages.at(-2).text).toContain(replies[index - 1][1]);
+    const answers = page.getByRole("listitem", { name: "雪域金澜的回答" });
+    await expect(answers).toHaveCount(index + 1);
+    await expect(answers.nth(index).getByText(expected, { exact: true })).toBeVisible();
+    await expect(answers.nth(index).getByRole("heading")).toHaveCount(0);
+    await expect(answers.nth(index).getByRole("button", { name: "查看来源" })).toHaveCount(0);
+    await expect(answers.nth(index).getByText("本次未检索数据库。", { exact: true })).toBeVisible();
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 for (const viewport of viewports) test(`real orchestration and evidence layout at ${viewport.width}`, async ({ page }) => {
   await page.setViewportSize(viewport);

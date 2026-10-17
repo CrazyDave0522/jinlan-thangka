@@ -6,13 +6,15 @@ import type { ImageRequest } from "../../src/lib/vision/types";
 
 const home = "http://127.0.0.1:3102";
 const sizes = [{ width: 360, height: 800 }, { width: 390, height: 844 }, { width: 414, height: 896 }, { width: 1280, height: 720 }, { width: 1366, height: 768 }, { width: 1536, height: 864 }, { width: 1920, height: 1080 }, { width: 2560, height: 1440 }];
-type TestClipboard = { writes: string[]; mode: string };
+type TestClipboard = { writes: string[]; mode: string; settle?: () => void };
+type FadeSample = { target: string; from: number; to: number; opacity: number; duration: number };
 async function stubClipboard(page: Page, mode = "memory") {
   await page.addInitScript((mode) => {
-    const state = { writes: [] as string[], mode: new URLSearchParams(location.search).get("clipboard") ?? mode };
+    const state: TestClipboard = { writes: [], mode: new URLSearchParams(location.search).get("clipboard") ?? mode };
     (window as unknown as { sourceClipboard: TestClipboard }).sourceClipboard = state;
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText(text: string) {
       state.writes.push(text);
+      if (state.mode === "controlled") return new Promise<void>((resolve) => { state.settle = resolve; });
       return state.mode === "reject" ? Promise.reject(new Error("Synthetic denied clipboard")) : Promise.resolve();
     } } });
   }, mode);
@@ -57,8 +59,33 @@ for (const size of sizes) test(`source inspection/copy and maximum evidence layo
   await expect(area).toContainText("第 3 页");
   await first.getByRole("button", { name: "返回引用" }).click();
   await expect(marker).toBeFocused();
-  await first.getByRole("button", { name: "复制回答" }).click();
+  const copy = first.getByRole("button", { name: "复制回答" });
+  await copy.click();
   await expect(first.getByRole("status", { name: "复制状态" })).toHaveText("已复制");
+  await expect(copy).toBeFocused();
+  await expect(copy).toBeDisabled();
+  await copy.press("Enter");
+  const confirmationPosition = (await copy.boundingBox())!;
+  await page.keyboard.down("Space");
+  expect((await copy.boundingBox())!.y).toBe(confirmationPosition.y);
+  await page.keyboard.up("Space");
+  await page.mouse.move(confirmationPosition.x + confirmationPosition.width / 2, confirmationPosition.y + confirmationPosition.height / 2);
+  await page.mouse.down();
+  expect((await copy.boundingBox())!.y).toBe(confirmationPosition.y);
+  await page.mouse.up();
+  expect(await copied(page)).toHaveLength(1);
+  const composer = page.getByRole("textbox", { name: "消息内容" });
+  await composer.fill("复制反馈期间的新草稿");
+  await expect(copy).toBeEnabled({ timeout: 3_000 });
+  await expect(first.getByRole("status", { name: "复制状态" })).toHaveCount(0);
+  await expect(copy.locator("svg.lucide-copy")).toHaveCSS("opacity", "1");
+  await expect(composer).toBeFocused();
+  await expect(composer).toHaveValue("复制反馈期间的新草稿");
+  await copy.click();
+  await expect(first.getByRole("status", { name: "复制状态" })).toHaveText("已复制");
+  const exports = await copied(page);
+  expect(exports).toHaveLength(2);
+  expect(exports[1]).toBe(exports[0]);
   expect((await copied(page))[0]).toContain("原始合成资料");
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   expect(await counts(id)).toEqual(before);
@@ -92,6 +119,75 @@ for (const size of sizes) test(`source inspection/copy and maximum evidence layo
   await layout(page);
   if ([390, 1366].includes(size.width)) await page.screenshot({ path: `test-results/source-fallback-${size.width}.png` });
   expect(errors).toEqual([]);
+});
+
+for (const width of [390, 1366]) for (const motion of ["no-preference", "reduce"] as const) test(`copy feedback crossfades at ${width} with reduced motion ${motion}`, async ({ page }) => {
+  await page.setViewportSize({ width, height: width === 390 ? 844 : 768 });
+  await page.emulateMedia({ reducedMotion: motion });
+  await stubClipboard(page, "controlled");
+  await page.goto(home);
+  await send(page, "你好");
+  const copy = page.getByRole("button", { name: "复制回答" });
+  await expect(copy.locator("svg.lucide-copy")).toHaveCSS("opacity", "1");
+  await page.evaluate(() => {
+    const samples: FadeSample[] = [];
+    (window as unknown as { copyFades: FadeSample[] }).copyFades = samples;
+    document.querySelector('[aria-label="回答复制操作"]')!.addEventListener("transitionrun", (event) => {
+      if ((event as TransitionEvent).propertyName !== "opacity" || !(event.target instanceof Element)) return;
+      const node = event.target;
+      const target = node.matches("svg.lucide-copy") ? "copy" : node.matches("svg.lucide-check") ? "check" : node.matches("span") && node.textContent?.trim() === "已复制" ? "hint" : null;
+      if (!target) return;
+      const animation = node.getAnimations().find((entry) => entry instanceof CSSTransition && entry.transitionProperty === "opacity");
+      if (!animation || !(animation.effect instanceof KeyframeEffect)) return;
+      const frames = animation.effect.getKeyframes();
+      const duration = Number(animation.effect.getTiming().duration);
+      animation.pause();
+      animation.currentTime = duration / 2;
+      samples.push({ target, from: Number(frames[0].opacity), to: Number(frames.at(-1)!.opacity), opacity: Number(getComputedStyle(node).opacity), duration });
+      animation.finish();
+    });
+  });
+  const samples = () => page.evaluate(() => (window as unknown as { copyFades: FadeSample[] }).copyFades);
+  const hint = copy.locator("..").getByText("已复制", { exact: true });
+  const box = (await copy.boundingBox())!;
+  await copy.click();
+  const status = page.getByRole("status", { name: "复制状态" });
+  await expect(status).toHaveText("正在复制…");
+  await expect(status).toHaveClass(/\bsr-only\b/);
+  await expect(status).toHaveCSS("clip-path", "inset(50%)");
+  await page.evaluate(() => (window as unknown as { sourceClipboard: TestClipboard }).sourceClipboard.settle?.());
+  await expect(status).toHaveText("已复制");
+  if (motion === "no-preference") await expect.poll(async () => (await samples()).length).toBe(3);
+  else for (const element of [copy.locator("svg.lucide-copy"), copy.locator("svg.lucide-check"), hint]) await expect(element).toHaveCSS("transition-property", "none");
+  await expect(hint).toHaveCSS("opacity", "1");
+  await layout(page);
+  if (motion === "no-preference") await page.screenshot({ path: `test-results/copy-confirmation-${width}.png` });
+  await expect(copy).toBeEnabled({ timeout: 3_000 });
+  await expect(page.getByRole("status", { name: "复制状态" })).toHaveCount(0);
+  if (motion === "no-preference") {
+    await expect.poll(async () => (await samples()).length).toBe(6);
+    const fades = await samples();
+    for (const target of ["copy", "check", "hint"]) expect(fades.filter((sample) => sample.target === target).map(({ from, to }) => [from, to])).toEqual(target === "copy" ? [[1, 0], [0, 1]] : [[0, 1], [1, 0]]);
+    for (const sample of fades) {
+      expect(sample.duration).toBe(200);
+      expect(sample.opacity).toBeGreaterThan(0);
+      expect(sample.opacity).toBeLessThan(1);
+    }
+  } else expect(await samples()).toEqual([]);
+  await expect(copy.locator("svg.lucide-copy")).toHaveCSS("opacity", "1");
+  await expect(copy.locator("svg.lucide-check")).toHaveCSS("opacity", "0");
+  await expect(hint).toHaveCSS("opacity", "0");
+  expect(await copy.boundingBox()).toEqual(box);
+  await expect(copy).toBeFocused();
+  if (motion === "no-preference") await page.screenshot({ path: `test-results/copy-restored-${width}.png` });
+  await copy.click();
+  await expect(status).toHaveText("正在复制…");
+  await expect(status).not.toHaveClass(/\bsr-only\b/, { timeout: 1_000 });
+  await expect(status).toHaveCSS("clip-path", "none");
+  await expect(status).toBeVisible();
+  await page.evaluate(() => (window as unknown as { sourceClipboard: TestClipboard }).sourceClipboard.settle?.());
+  await expect(status).toHaveText("已复制");
+  expect(await copied(page)).toHaveLength(2);
 });
 
 test("a held answer and pending image preparation preserve old-source selection and a newer draft", async ({ page }) => {
@@ -184,10 +280,10 @@ test("native Chromium clipboard copies the chosen answer at trusted loopback", a
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto(home);
   await send(page, "你好");
-  await expect(page.getByText("您好！请告诉我您想了解的具体内容。", { exact: true })).toBeVisible();
+  await expect(page.getByText("您好！我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格、人物和作品背景等问题。您想了解什么？", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "复制回答" }).click();
   await expect(page.getByRole("status", { name: "复制状态" })).toHaveText("已复制");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("您好！请告诉我您想了解的具体内容。\n\n本次未检索数据库。");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("您好！我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格、人物和作品背景等问题。您想了解什么？\n\n本次未检索数据库。");
 });
 
 test("dismissing manual copy returns focus to a visible copy control in a short viewport", async ({ page }) => {

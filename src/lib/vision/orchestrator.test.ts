@@ -24,6 +24,74 @@ function response(messages: ProviderMessage[]): GeneratedAnswer {
   const payload = data(messages);
   return { blocks: [{ kind: payload.observations.length ? "visual" : "general", text: "请结合可见特征和档案依据核对。", evidenceKeys: [], observationIds: payload.observations.map((o: { id: string }) => o.id) }], comparisons: [], observationUpdates: [] };
 }
+it.each([false, true])("keeps the question-answering introduction consistent with prior image context=%s", async (prior) => {
+  const original = visitorRequest();
+  const previous = successV2(original).message;
+  const question = "你能帮我做什么？";
+  const request: ImageRequest = prior
+    ? { ...original, turnId: "introduction", inputs: [], observations: previous.observations, messages: [...original.messages, { id: previous.id, role: "assistant", text: previous.text, imageIds: [] }, { id: "introduction", role: "user", text: question, imageIds: [] }] }
+    : { ...visitorRequest(0), messages: [{ id: "q", role: "user", text: question, imageIds: [] }] };
+  parseRequest(request);
+  const introduction = "我可以结合档案资料与相关知识，帮您解答唐卡的题材、风格与作品背景等问题。";
+  const completeMock = vi.fn<typeof complete>(async (_config, stage, messages) => {
+    expect(messages[0].content).toContain("answering Thangka questions");
+    const payload = data(messages);
+    if (stage === "planner") return { content: payload.protocol === 2 ? { action: "answer", observations: [], groups: [], queries: [] } : { action: "answer", queries: [] }, usage: {} };
+    expect(messages[0].content).toContain("available archive information and relevant knowledge");
+    expect(messages[0].content).toContain("no fixed greeting script");
+    expect(messages[0].content).toContain("a full capability introduction is optional");
+    expect(messages[0].content).not.toContain("A suitable introduction is");
+    expect(messages[0].content).toContain("without implying that this turn already retrieved records");
+    expect(payload.retrievalStatus).toBe("not_searched");
+    return { content: payload.protocol === 2 ? { blocks: [{ kind: "general", text: introduction, evidenceKeys: [], observationIds: [] }], comparisons: [], observationUpdates: [] } : { blocks: [{ kind: "general", text: introduction, evidenceKeys: [] }] }, usage: {} };
+  });
+  const retrieve = vi.fn(), read = vi.fn();
+  const result = await generateV2(request, config, scope(), { complete: completeMock, retrieve, selectReferences, readReferences: read });
+  parseAssistantV2(result.message, request);
+  expect(result.message.blocks).toEqual([{ kind: "general", text: introduction, evidenceKeys: [], observationIds: [] }]);
+  expect(result.message.notices).toEqual(["no_retrieval"]);
+  expect(result.message.observations).toEqual([]);
+  expect(result.message.references).toEqual([]);
+  expect(result.message.referenceImages).toEqual([]);
+  expect(completeMock).toHaveBeenCalledTimes(2);
+  expect(retrieve).not.toHaveBeenCalled();
+  expect(read).not.toHaveBeenCalled();
+});
+it.each([false, true])("preserves model-written follow-up greetings with prior image context=%s", async (prior) => {
+  const original = visitorRequest();
+  const previous = successV2(original).message;
+  const request: ImageRequest = prior
+    ? { ...original, turnId: "greeting-1", inputs: [], observations: previous.observations, messages: [...original.messages, { id: previous.id, role: "assistant", text: previous.text, imageIds: [] }, { id: "greeting-1", role: "user", text: "你好", imageIds: [] }] }
+    : { ...visitorRequest(0), messages: [{ id: "q", role: "user", text: "你好", imageIds: [] }] };
+  const replies = ["你好！今天想了解唐卡的哪方面？", "又见面了！接着聊些什么？"];
+  let nextReply = 0;
+  const completeMock = vi.fn<typeof complete>(async (_config, stage, messages) => {
+    const payload = data(messages);
+    expect(payload.context.at(-1).text).toBe("你好");
+    if (nextReply === 1) expect(payload.context.at(-2).text).toContain(replies[0]);
+    if (stage === "planner") return { content: payload.protocol === 2 ? { action: "answer", observations: [], groups: [], queries: [] } : { action: "answer", queries: [] }, usage: {} };
+    expect(messages[0].content).toContain("avoid repeating its wording or capability list");
+    return { content: payload.protocol === 2 ? { blocks: [{ kind: "general", text: replies[nextReply], evidenceKeys: [], observationIds: [] }], comparisons: [], observationUpdates: [] } : { blocks: [{ kind: "general", text: replies[nextReply], evidenceKeys: [] }] }, usage: {} };
+  });
+  const retrieve = vi.fn(), read = vi.fn();
+  const deps = { complete: completeMock, retrieve, selectReferences, readReferences: read };
+  const first = await generateV2(request, config, scope(), deps);
+  expect(first.message.blocks[0].text).toBe(replies[0]);
+  request.turnId = "greeting-2";
+  request.messages.push({ id: first.message.id, role: "assistant", text: first.message.text, imageIds: [] }, { id: "greeting-2", role: "user", text: "你好", imageIds: [] });
+  nextReply = 1;
+  parseRequest(request);
+  const second = await generateV2(request, config, scope(), deps);
+  parseAssistantV2(second.message, request);
+  expect(second.message.blocks).toEqual([{ kind: "general", text: replies[1], evidenceKeys: [], observationIds: [] }]);
+  expect(second.message.notices).toEqual(["no_retrieval"]);
+  expect(second.message.observations).toEqual([]);
+  expect(second.message.references).toEqual([]);
+  expect(second.message.referenceImages).toEqual([]);
+  expect(completeMock).toHaveBeenCalledTimes(4);
+  expect(retrieve).not.toHaveBeenCalled();
+  expect(read).not.toHaveBeenCalled();
+});
 it("makes the captured reread question and current/prior observation sets explicit without resending unrelated pixels", async () => {
   const initial = visitorRequest(2), previous = successV2(initial).message;
   const clarificationId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";

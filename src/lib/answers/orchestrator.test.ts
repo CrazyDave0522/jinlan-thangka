@@ -6,6 +6,7 @@ import { createScope } from "./runtime";
 import { buildCatalogue, mergeEvidence } from "./catalogue";
 import { archiveId as id, archiveRow as row } from "../../../tests/fixtures/archive";
 import type { RetrievalResult } from "@/lib/retrieval/contracts";
+import type { ChatRequest } from "@/lib/chat/conversation";
 const config = { key: "synthetic-unit-key", model: "deepseek-flash" as const };
 const query = { kind: "search", entity: "artist", filters: [{ field: "name", value: "画师", mode: "contains" }], limit: 5 } as const;
 function matched(): Extract<RetrievalResult, { status: "matched" }> {
@@ -18,6 +19,55 @@ function request(text = "介绍画师") { return { turnId: "q", messages: [{ id:
 const scopes: ReturnType<typeof createScope>[] = [];
 const scope = () => { const s = createScope(); scopes.push(s); return s; };
 afterEach(() => { scopes.forEach((s) => s.close()); scopes.length = 0; });
+it.each([
+  ["你好", "你好！想聊聊唐卡的哪方面？"],
+  ["早上好", "早上好！有什么唐卡问题想一起看看？"],
+  ["你能帮我做什么？", "我可以结合档案资料和相关知识，帮您理解唐卡题材、风格与作品背景。"],
+])("preserves the model's contextual reply without inventing retrieval for %s", async (question, introduction) => {
+  const complete = vi.fn(async (_config, stage, messages) => {
+    expect(messages[0].content).toContain("answering Thangka questions");
+    if (stage === "planner") return { content: { action: "answer", queries: [] }, usage: {} };
+    expect(messages[0].content).toContain("available archive information and relevant knowledge");
+    expect(messages[0].content).toContain("no fixed greeting script");
+    expect(messages[0].content).toContain("a full capability introduction is optional");
+    expect(messages[0].content).not.toContain("A suitable introduction is");
+    expect(messages[0].content).toContain("without implying that this turn already retrieved records");
+    const data = JSON.parse(messages[1].content);
+    expect(data.retrievalStatus).toBe("not_searched");
+    expect(data.catalogue).toEqual([]);
+    return { content: { blocks: [{ kind: "general", text: introduction, evidenceKeys: [] }] }, usage: {} };
+  });
+  const retrieve = vi.fn();
+  const result = await generateAnswer(request(question), config, scope(), { complete, retrieve });
+  expect(result.message.blocks).toEqual([{ kind: "general", text: introduction, evidenceKeys: [] }]);
+  expect(result.message.references).toEqual([]);
+  expect(result.message.notices).toEqual(["no_retrieval"]);
+  expect(complete).toHaveBeenCalledTimes(2);
+  expect(retrieve).not.toHaveBeenCalled();
+});
+it("supplies previous greetings to the model and preserves a fresh reply on the next greeting", async () => {
+  const request: ChatRequest = { turnId: "greeting-1", messages: [{ id: "greeting-1", role: "user", text: "你好" }] };
+  const replies = ["你好！想了解唐卡的什么内容？", "又见面了！接着聊些什么？"];
+  const complete = vi.fn(async (_config, stage, messages) => {
+    const payload = JSON.parse(messages[1].content);
+    expect(payload.context).toEqual(request.messages.map(({ role, text }) => ({ role, text })));
+    if (stage === "planner") return { content: { action: "answer", queries: [] }, usage: {} };
+    expect(messages[0].content).toContain("avoid repeating its wording or capability list");
+    expect(messages[0].content).toContain("prioritize that question");
+    return { content: { blocks: [{ kind: "general", text: replies[request.messages.length === 1 ? 0 : 1], evidenceKeys: [] }] }, usage: {} };
+  });
+  const retrieve = vi.fn();
+  const first = await generateAnswer(request, config, scope(), { complete, retrieve });
+  expect(first.message.blocks[0].text).toBe(replies[0]);
+  request.turnId = "greeting-2";
+  request.messages.push({ id: first.message.id, role: "assistant", text: first.message.text }, { id: "greeting-2", role: "user", text: "你好" });
+  const second = await generateAnswer(request, config, scope(), { complete, retrieve });
+  expect(second.message.blocks[0].text).toBe(replies[1]);
+  expect(second.message.references).toEqual([]);
+  expect(second.message.notices).toEqual(["no_retrieval"]);
+  expect(complete).toHaveBeenCalledTimes(4);
+  expect(retrieve).not.toHaveBeenCalled();
+});
 it("validates two long three-filter queries but refuses widened fields/limits/duplicates/extra instructions", () => {
   const long = { ...query, entity: "artwork", filters: ["name", "style", "subject"].map((field) => ({ field, value: "字".repeat(64), mode: "contains" })) };
   expect(parsePlan({ action: "answer", queries: [long, { ...long, filters: long.filters.map((f) => ({ ...f, value: "另".repeat(64) })) }] }).action).toBe("answer");

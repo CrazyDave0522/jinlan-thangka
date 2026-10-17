@@ -1,6 +1,6 @@
 # AI Setup and Evaluation
 
-The accepted grounded-answer increment supplies bounded text generation. The owner approved image-interpretation implementation on 2026-10-17; selected-image analysis, bounded observations, one-click reread and both archive identification paths are now implemented on the feature branch. Earlier authorized real-image trials exposed model-contract, retrieval and semantic failures. The owner has since withdrawn that dataset and deferred curated-data preparation; feature work continues with empty-archive behavior and synthetic fixtures. Implementation and deterministic tests do not establish recognition accuracy or owner acceptance. Further paid batches require another allowance. Full source inspection, persistence and global spending quotas remain outside this increment.
+Bounded text generation (requirement 5), selected-image analysis/history/reread and both archive identification paths (requirement 6), and answer-local source inspection/copying (requirement 7) are implemented, archived and included in local `main`. The owner withdrew the earlier dataset and deferred replacement data; current work uses empty-archive behavior and isolated synthetic fixtures. Earlier model-contract/retrieval/semantic failures and their authorized stabilization results remain in the archived verification records. Implementation/tests do not establish real-work recognition, domain accuracy or deployed acceptance. Existing local empty-archive stabilization authorization remains valid within its scope; new text-evaluation allowances and deployed enabled access are separate decisions as described below. Conversation persistence and global spending quotas remain outside the current demo. See the [release proposal](../openspec/changes/add-demo-release/proposal.md) for staged acceptance.
 
 ## Safe Defaults
 
@@ -15,7 +15,27 @@ DEEPSEEK_VISION_ENABLED=false
 
 A key alone enables nothing. Valid selected images with vision missing/off/invalid return image_understanding_unavailable before generation checks or provider access. Otherwise missing/off/invalid generation settings return generation_unavailable. Enable both settings only for a separately authorized image run; no owner setting was enabled during implementation. The interface explains unavailable capability without claiming images were inspected.
 
-Keep keys out of NEXT_PUBLIC variables, tracked files, screenshots and chat. Restart the local server after changing settings; set the same server-only variables on Vercel and redeploy. Corrective editing restores question text without overwriting a newer draft or restoring old files automatically.
+Keep the DeepSeek key and any elevated Supabase secret/service-role key out of NEXT_PUBLIC variables, tracked files, screenshots and chat. The intended Supabase publishable/anon key is separate public configuration. Restart the local server after changing settings; set the same server-only provider variables on Vercel and redeploy. Corrective editing restores question text without overwriting a newer draft or restoring old files automatically.
+
+## Vercel Configuration Starting Point
+
+On 2026-10-17 the owner corrected the earlier unprefixed Supabase names and redeployed. Connected inspection confirms both canonical public Config entries match the previously inspected archive, model `deepseek-flash`, shared Preview/Production generation enabled and vision absent. The [CLI follow-up](../openspec/changes/add-demo-release/verification.md#authenticated-cli-follow-up) on 2026-10-18 confirms the current Production revision, root/default build settings and actual 60-second chat function; deployment environment names are captured, but historical values are not returned. The initial release-branch Preview needs its own explicit false generation/vision overrides before publication. Use the canonical names below; the application does not read `SUPABASE_URL` or `SUPABASE_PUBLISHABLE_KEY`. Earlier [public request probes](../openspec/changes/add-demo-release/review.md#owner-reconfiguration-and-redeployment-recheck) establish rejection/byte-boundary behavior, not successful archive or active-provider operation. The accepted source keeps the page available without Supabase settings and returns defined unavailable outcomes when provider/vision settings are missing.
+
+A-stage implementation is now approved; follow the [release runbook](demo-release.md) and prepare the concrete commit/target/settings/access action before deployment changes. Configure the intended branch Preview first, preserving current production mapping/settings. Existing local values can be entered privately; no keys need to be posted in chat.
+
+| Variable | Vercel type | Initial configured Preview | Later active empty-archive batch |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Config | Existing intended Supabase project URL | Same verified archive |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Config | Its publishable or legacy anon key | Same scoped application reader |
+| `DEEPSEEK_MODEL` | Config | `deepseek-flash` | Same accepted model |
+| `DEEPSEEK_API_KEY` | Secret | May remain absent with generation disabled | Actual server-only provider key |
+| `DEEPSEEK_ENABLED` | Config | `false` | `true` within agreed scope/window |
+| `DEEPSEEK_VISION_ENABLED` | Config | `false` | `true` within agreed scope/window |
+| `JINLAN_BROWSER_FIXTURES` | Config if explicitly set | Unset or `false` | Unset or `false` |
+
+For prefixed public variables, choose Config rather than Secret/Sensitive. An existing saved Secret cannot be renamed or converted to Config in place; create the correctly named Config entries instead, using the intended local public values. Use exact ASCII underscores in `NEXT_PUBLIC_`, not hyphens or typographic dashes. See [Vercel Config and Secret types](https://vercel.com/docs/environment-variables/sensitive-environment-variables), checked 2026-10-17. Only the Supabase publishable/anon key belongs in that public field; see [Supabase key types](https://supabase.com/docs/guides/getting-started/api-keys). Never substitute a Supabase secret/service-role key or the DeepSeek key. If creation is blocked, record only the exact error and selected Type to distinguish a type restriction, naming error or other account/UI condition; do not infer a confirmed cause or request key values.
+
+Create a new deployment after adding/changing variables: previous deployments do not receive those changes. Preview variables can be branch-specific; check scope before saving. See [Vercel environment variables](https://vercel.com/docs/environment-variables), checked 2026-10-17. Verify archive configuration/access before enabling paid generation, since planning can spend before a later missing-database failure. The [release acceptance matrix](../openspec/changes/add-demo-release/acceptance.md) distinguishes unconfigured, configured-disabled and active states. Initial setup needs no real business data or curated Storage assets.
 
 ## Protocol and Limits
 

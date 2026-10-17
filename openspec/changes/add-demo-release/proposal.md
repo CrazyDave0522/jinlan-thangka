@@ -2,32 +2,49 @@
 
 ## Status
 
-Roadmap draft, item 8 of 8. Scope only; detailed requirements and implementation tasks will be refined when this change is selected. Creating this draft does not approve implementation.
+Item 8 of 8; milestone A implementation was approved on 2026-10-17 when the owner confirmed continuation immediately after the explicit request to start A under this proposal. Work uses `feat/add-demo-release`, created from clean `main` at `c841ea4`. The owner confirmed real archive data remains unavailable and supplied the existing deployment URL, [jinlan-thangka.vercel.app](https://jinlan-thangka.vercel.app/). Public GET/invalid-POST checks pass. Subsequent [connected inspection](verification.md#connected-vercel-inspection) identifies the project, current Production `main@c841ea4`, saved configuration and sampled access; the authenticated CLI follow-up confirms root/default build settings and actual 60-second chat duration, while the release-branch Preview remains to be created and verified. Deployed funded scope and deferred B inputs remain separate from this implementation approval.
+
+Delivery has two proposed milestones: A, an empty-archive preview with engineering and deployed-flow acceptance; B, real-data/domain acceptance when curated material becomes available. Passing A does not pass B or complete the whole change.
+
+After an initial five-name Production list with unprefixed Supabase names, the owner reported correcting the configuration and redeploying. The later list explicitly showed `NEXT_PUBLIC_SUPABASE_URL`, `DEEPSEEK_API_KEY` and `DEEPSEEK_MODEL` in Production and Preview; another masked entry omitted its name, and the generation entry was truncated. Connected inspection has since confirmed both canonical Supabase Config values, the model and saved scopes; text is enabled and vision is absent. The CLI follow-up confirms deployment environment names and the actual 60-second chat function; historical variable values are not returned and the new Preview remains unverified. The [post-redeployment HTTP recheck](review.md#owner-reconfiguration-and-redeployment-recheck) passes public reachability and non-provider request rejection/boundaries; it does not establish database access or active AI. No replacement project or real data is needed.
 
 ## Why
 
-The integrated demo needs verified browser behavior and a working Vercel release.
+The seven feature increments are already in local `main`, but integrated owner acceptance and deployed feature acceptance remain unverified. The existing public site is reachable; its exact revision and active capabilities have not been established. An empty archive permits release engineering and a working preview while leaving real retrieval, citation support and artwork-identification quality explicitly unevaluated.
 
 ## What Changes
 
-- Verify the full text/image conversation, retrieval, generation, and source-inspection flows with browser coverage.
-- Complete release verification of database access, server-only secrets and Vercel environment configuration; verify curated Storage access only if an approved enabled capability requires curated assets. Visitor images require no bucket.
-- Deploy and verify the demo using agreed samples, reporting any limits of real-model validation.
+- Define acceptance that distinguishes deterministic synthetic checks, actual empty-archive/model checks, deployed checks, owner/device review and deferred real-data results.
+- Bind evidence to the tested deployment/configuration/archive state and refresh affected checks for the final candidate; adding later data must not require clearing it to repeat the historical empty-archive milestone.
+- Reuse existing conversation, image/reread, source/copy and failure coverage; add tests only for demonstrated integrated gaps. Synthetic evidence stays isolated from the real archive and ordinary deployments.
+- Prepare a release runbook and result record for the existing Vercel project, including environment scope, transport/duration compatibility, deployment identity and rollback.
+- Check unconfigured interface/unavailable states, then initially configure Supabase and explicit disabled provider switches for the branch Preview and create a new deployment. Verify that configured-disabled preview before the active empty-archive batch. Missing settings are not empty retrieval results, and a disabled preview alone does not pass active conversation acceptance.
+- Default the test deployments back to both model switches false after the run, preserving the existing production state; ongoing enabled scope is a separate explicit decision.
+- Carry forward actual source support, numbered/ordinary-photo identification positives and similar-work negatives as milestone B, retaining their evidence and permission prerequisites.
 
 ## Impact
 
 - Affected specs: `demo-release` (new capability).
-- Affected code/systems: Browser acceptance tests, deployment configuration, and release documentation.
-- Shared constraints: follow [project context](../../project.md); no login, administration UI, Excel importer, live web search, or theme switcher is added by this draft.
+- Affected code/systems: Existing browser tests/test-only upstreams where gaps are demonstrated, release documentation and reviewed Preview configuration of the existing Vercel project. Fixes preserve accepted capabilities; new behavior/architecture requires the normal proposal workflow.
+- Shared constraints: follow [project context](../../project.md); no login, administration UI, Excel importer, live web search, or theme switcher is added by this proposal.
 
 ## Dependencies
 
-All seven preceding changes. Each change owns its behavior tests and necessary service access setup; this change verifies the integrated release. The approved, locally implemented requirement-6 change includes evidence-supported specific archive-work identification with selected visitor images and bounded rights-gated reference verification for ordinary unnumbered photos. Release acceptance must include numbered-positive, ordinary-unnumbered-positive and visually-similar-different-work-negative cases, including actual curated-asset permission/access for the reference branch; until representative records/images are available, identification quality remains unverified rather than deferred out of scope. Visitor selection/transport and fixture development remain independent of curated buckets; real reference-branch acceptance requires corresponding assets and reviewed permissions.
+All seven preceding changes are implemented and present in local `main`. Each retains its behavior tests and service access responsibilities. This change verifies integration and deployment without schema changes, reapplying installed SQL or importing data.
+
+The owner confirms the archive remains empty; project records also show an empty production reference manifest and removed curated pictures. Milestone A needs no replacement records or curated bucket. Successful empty reads must remain distinct from access failures. The existing archive smoke script checks HTTP/column access, not exact emptiness, complete grants/RLS or domain accuracy.
+
+Milestone B retains numbered-positive, ordinary-unnumbered-positive and visually-similar-different-work-negative cases, including actual curated-asset permissions/access for reference verification. Missing material is deferred/not run, not removed from full release acceptance. Real source/identity quality cannot pass on synthetic positives or an empty archive.
 
 Requirement 7 is locally implemented and archived at the owner's request; the formal [answer-sources capability](../../specs/answer-sources/spec.md) covers source details, exact citation navigation and complete plain-text copying with a manual fallback. Its [verification record](../archive/2026-10-17-add-answer-sources/verification.md) carries forward hands-on owner review, native-device behavior and final integrated acceptance. Implementation-stage archival of requirements 6–7 does not establish a deployed release or approve this draft.
 
-## Deferred Detail
+## Delivery and Review
 
-Change-specific integrated browser cases using the existing Playwright/Chromium tooling and server-process upstream fixtures, concrete acceptance samples, deployment environment details, and release procedure. Real identification quality requires agreed real records, images, and sources.
+The [design](design.md), [acceptance matrix](acceptance.md), [tasks](tasks.md) and [readiness review](review.md) define the proposed implementation and evidence boundaries. A requires applicable local, actual deployed and owner hands-on passes. B and whole-change completion remain open while real material is unavailable. Any later owner-requested scope change must explicitly record remaining obligations.
 
-Add a technical design before implementation where required by the OpenSpec workflow. The accompanying spec records a minimum scope scenario, not a complete acceptance specification.
+## Owner Inputs and Decisions
+
+1. The owner supplied [the existing deployment URL](https://jinlan-thangka.vercel.app/). Inspect dashboard project identity, branch mapping, variable scopes and deployed commit before preparing a concrete deployment action; the public address alone does not establish those settings.
+2. Milestone A implementation approval is recorded above and in [verification.md](verification.md). No repeated proposal approval is needed within that scope; new product requirements follow the normal workflow.
+3. Before deployed provider activation, agree reviewer access, test window and funded allowance. The proposed smoke is at most six dispatched submissions/twelve provider calls across the batch, counting failures/timeouts and reread, stopping at the first failure/unmet prerequisite/cap without automatic retry or replacement cases. Test deployments end disabled by default unless ongoing scope is explicitly agreed. Existing local empty-archive stabilization authorization remains valid within its original scope; it does not establish deployed/public funded access.
+4. Schedule desktop/mobile live review within the bounded P01–P06 batch; repeated control/source exercises can use isolated fixtures or a disabled Preview. Extra active questions still need available agreed scope. No device purchase or audience dataset is required. Real records/assets and domain judgments remain later inputs for B.

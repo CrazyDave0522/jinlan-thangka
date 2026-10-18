@@ -1,4 +1,4 @@
-import { archiveColumns, archiveEnums } from "@/lib/retrieval/database";
+import { archiveColumns, archiveEnums, isArchiveReviewField } from "@/lib/retrieval/database";
 import { isObject, UUID } from "@/lib/retrieval/contracts";
 import type { TextMessage } from "@/lib/chat/conversation";
 import { FIELD_LABELS, NOTICE_TEXT } from "./labels";
@@ -82,7 +82,7 @@ export function validReference(v: unknown): v is AnswerReference {
   if ((v.field === "review_status" && v.value !== v.reviewStatus) || (v.field === "attribution_status" && v.value !== v.attributionStatus)) return false;
   const table = o.table as EvidenceTable;
   const descriptor = (archiveColumns[table] as Record<string, { kind: string; nullable: boolean }>)[v.field];
-  if (!descriptor || !Object.hasOwn(FIELD_LABELS, v.field)) return false;
+  if (!descriptor || isArchiveReviewField(v.field) || !Object.hasOwn(FIELD_LABELS, v.field)) return false;
   if (v.value === null ? !descriptor.nullable : descriptor.kind === "text[]" ? !Array.isArray(v.value) || !v.value.every((s) => typeof s === "string")
     : ["numeric", "integer", "bigint"].includes(descriptor.kind) ? typeof v.value !== "number" || !Number.isFinite(v.value) || (descriptor.kind !== "numeric" && !Number.isSafeInteger(v.value))
     : descriptor.kind === "boolean" ? typeof v.value !== "boolean" : typeof v.value !== "string" || (descriptor.kind === "uuid" && !uuid(v.value))) return false;

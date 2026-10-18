@@ -11,6 +11,7 @@ Vitest is the test runner, with React Testing Library for component behavior, js
 | `npm run test:watch`                          | Rerun tests during development                                                           |
 | `npm run typecheck`                           | Check application, test, and configuration types                                         |
 | `npm run build`                               | Check the production build when application integration changes                          |
+| `npm run test:db-concurrency`                  | Run disposable PostgreSQL 17 lock races, old-reader compatibility and review restore checks |
 | `npm test -- src/lib/supabase/config.test.ts` | Run a specific test file                                                                 |
 
 ## Writing tests
@@ -36,6 +37,12 @@ Mocked AI responses can check how the application handles citations, uncertainty
 `sql.test.ts` uses the development-only `@electric-sql/pglite` dependency to run the actual reference schema and incremental search/access SQL against disposable in-memory PostgreSQL, including exact/substring rank tiers, arrays, multilingual names, literal special characters, filters/caps, reference descriptor types/nullability, anon writes denied and invoker RLS. It never connects to Supabase and requires no Docker or real dataset. It does not establish production collation, deployed grants/schema exposure or Data API behavior. These checks are part of `npm run check`.
 
 The optional `node --env-file=.env.local scripts/verify-archive.mjs` command is a separately invoked read-only live smoke check, never a routine unit-test dependency. Follow [retrieval-setup.md](retrieval-setup.md) and record live setup/type/access gaps independently. Retrieval adds no screen or public route; existing Chromium tests cover product regressions, while later integration must test browser consumption of retrieved evidence.
+
+`archive-quality.test.ts` verifies atomic review history, direct-state/replay rejection, immutable snapshots, migration conflict rollback, every target-field allowlist, flat non-null arrays, and effective maintenance denials for anon/authenticated roles. The preserved pre-quality schema fixture makes migration parity independent of the edited initializer. Release inspection separates eight business tables from the operational ledger and reports unexpected names/signatures.
+
+`npm run test:db-concurrency` is a separate local gate using pinned development-only `embedded-postgres@17.10.0-beta.17`. It creates a private loopback cluster with synthetic credentials, uses independent backend sessions and observes actual lock waits, and removes its databases on exit. Six race cases cover commit/rollback orderings, including two reviewers with a null previous decision; two more cases cover baseline reads and exact history restoration. It never loads `.env.local` or connects to Supabase. PGlite's single connection cannot certify these results.
+
+The pinned Darwin ARM64 binary package's reviewed install script only restores packaged symbolic links; its exact version is approved in `allowScripts`. On another platform, inspect and approve only the installed version's platform package if npm blocks that hydration step. No system account, globally installed PostgreSQL service or Docker daemon is required. Recovery rehearsal details and review scope are in [archive-curation.md](archive-curation.md).
 
 ## Browser tests
 

@@ -1,5 +1,5 @@
 import "server-only";
-import { archiveColumns, type ArchiveRow, type EvidenceLink } from "@/lib/retrieval/database";
+import { archiveColumns, isArchiveReviewField, type ArchiveRow, type EvidenceLink } from "@/lib/retrieval/database";
 import type { RetrievalResult } from "@/lib/retrieval/contracts";
 import { AnswerFailure, type AnswerReference, type EvidenceOwner } from "./contracts";
 import { ROLE_LABELS } from "./labels";
@@ -49,6 +49,7 @@ export function buildCatalogue(graph: Graph): CatalogueFact[] {
       const label = typeof name === "string" && name.trim() ? name : table === "artwork_artists"
         ? `${ROLE_LABELS[String(row.role)]}（${row.artwork_id} / ${row.artist_id}）` : `记录 ${row.id}`;
       for (const field of Object.keys(archiveColumns[table])) {
+        if (isArchiveReviewField(field)) continue;
         const kind = { artists: "artist", artworks: "artwork", images: "image", artwork_artists: "association" }[table];
         const links = graph.sourceLinks.filter((l) => l.entity === kind && l.entityId === row.id && (l.row.supported_field === "" || l.row.supported_field === field));
         links.sort((a, b) => a.row.id.localeCompare(b.row.id));

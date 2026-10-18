@@ -14,6 +14,80 @@ export type Database = {
   }
   thangka: {
     Tables: {
+      archive_reviews: {
+        Row: {
+          artist_id: string | null
+          artwork_id: string | null
+          content_revision: number
+          decision: string
+          decision_order: number
+          id: string
+          image_id: string | null
+          notes: string | null
+          previous_review_id: string | null
+          reviewed_at: string
+          reviewer: string
+          snapshot: Json
+        }
+        Insert: {
+          artist_id?: string | null
+          artwork_id?: string | null
+          content_revision: number
+          decision: string
+          decision_order: number
+          id?: string
+          image_id?: string | null
+          notes?: string | null
+          previous_review_id?: string | null
+          reviewed_at: string
+          reviewer: string
+          snapshot: Json
+        }
+        Update: {
+          artist_id?: string | null
+          artwork_id?: string | null
+          content_revision?: number
+          decision?: string
+          decision_order?: number
+          id?: string
+          image_id?: string | null
+          notes?: string | null
+          previous_review_id?: string | null
+          reviewed_at?: string
+          reviewer?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archive_reviews_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_reviews_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_reviews_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_reviews_previous_review_id_fkey"
+            columns: ["previous_review_id"]
+            isOneToOne: false
+            referencedRelation: "archive_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_sources: {
         Row: {
           artist_id: string
@@ -70,7 +144,9 @@ export type Database = {
           birth_period_text: string | null
           collected_by: string | null
           collected_on: string | null
+          content_revision: number
           created_at: string
+          current_review_id: string | null
           death_period_text: string | null
           display_name: string
           gender: string | null
@@ -93,7 +169,9 @@ export type Database = {
           birth_period_text?: string | null
           collected_by?: string | null
           collected_on?: string | null
+          content_revision?: number
           created_at?: string
+          current_review_id?: string | null
           death_period_text?: string | null
           display_name: string
           gender?: string | null
@@ -116,7 +194,9 @@ export type Database = {
           birth_period_text?: string | null
           collected_by?: string | null
           collected_on?: string | null
+          content_revision?: number
           created_at?: string
+          current_review_id?: string | null
           death_period_text?: string | null
           display_name?: string
           gender?: string | null
@@ -132,7 +212,15 @@ export type Database = {
           teachers_text?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "artists_current_review_id_fkey"
+            columns: ["current_review_id"]
+            isOneToOne: false
+            referencedRelation: "archive_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       artwork_artists: {
         Row: {
@@ -237,10 +325,12 @@ export type Database = {
           collected_on: string | null
           collection_location: string | null
           collection_name: string | null
+          content_revision: number
           created_at: string
           creation_period_text: string | null
           creation_year_end: number | null
           creation_year_start: number | null
+          current_review_id: string | null
           dating_notes: string | null
           description: string | null
           dimensions_notes: string | null
@@ -270,10 +360,12 @@ export type Database = {
           collected_on?: string | null
           collection_location?: string | null
           collection_name?: string | null
+          content_revision?: number
           created_at?: string
           creation_period_text?: string | null
           creation_year_end?: number | null
           creation_year_start?: number | null
+          current_review_id?: string | null
           dating_notes?: string | null
           description?: string | null
           dimensions_notes?: string | null
@@ -303,10 +395,12 @@ export type Database = {
           collected_on?: string | null
           collection_location?: string | null
           collection_name?: string | null
+          content_revision?: number
           created_at?: string
           creation_period_text?: string | null
           creation_year_end?: number | null
           creation_year_start?: number | null
+          current_review_id?: string | null
           dating_notes?: string | null
           description?: string | null
           dimensions_notes?: string | null
@@ -327,7 +421,15 @@ export type Database = {
           updated_at?: string
           width_cm?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "artworks_current_review_id_fkey"
+            columns: ["current_review_id"]
+            isOneToOne: false
+            referencedRelation: "archive_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       image_sources: {
         Row: {
@@ -384,7 +486,9 @@ export type Database = {
           caption: string | null
           collected_by: string | null
           collected_on: string | null
+          content_revision: number
           created_at: string
+          current_review_id: string | null
           id: string
           image_type: string | null
           is_primary: boolean
@@ -408,7 +512,9 @@ export type Database = {
           caption?: string | null
           collected_by?: string | null
           collected_on?: string | null
+          content_revision?: number
           created_at?: string
+          current_review_id?: string | null
           id?: string
           image_type?: string | null
           is_primary?: boolean
@@ -432,7 +538,9 @@ export type Database = {
           caption?: string | null
           collected_by?: string | null
           collected_on?: string | null
+          content_revision?: number
           created_at?: string
+          current_review_id?: string | null
           id?: string
           image_type?: string | null
           is_primary?: boolean
@@ -456,6 +564,13 @@ export type Database = {
             columns: ["artwork_id"]
             isOneToOne: false
             referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "images_current_review_id_fkey"
+            columns: ["current_review_id"]
+            isOneToOne: false
+            referencedRelation: "archive_reviews"
             referencedColumns: ["id"]
           },
         ]
@@ -528,6 +643,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      record_archive_review: {
+        Args: {
+          p_decision: string
+          p_entity: string
+          p_entity_id: string
+          p_expected_review_id: string
+          p_expected_revision: number
+          p_notes?: string
+          p_reviewer: string
+        }
+        Returns: string
+      }
       search_archive_candidates: {
         Args: { p_entity: string; p_filters: Json; p_limit: number }
         Returns: {

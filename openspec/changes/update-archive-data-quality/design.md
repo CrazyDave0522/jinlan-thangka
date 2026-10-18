@@ -27,6 +27,8 @@ Create the ledger with RLS enabled and no visitor policies. In the creation tran
 
 ### Invalidate verification when reviewed row content changes
 
+Implementation clarifications: an invoker BEFORE INSERT guard generates ledger order/time/snapshot from the locked row, and an AFTER INSERT trigger applies its current pointer atomically. These generated columns have no caller-provided defaults, so supplied values can be rejected. Current-pointer foreign keys are deferrable initially immediate for owner-only restore; ordinary row guards still validate identity/revision/current decision immediately. A direct administrative ledger insert also receives these integrity checks, although the maintenance function is the supported interface.
+
 Database triggers advance `content_revision`, set status to `pending` and clear `current_review_id` on an actual content change. Content excludes primary identity, timestamps and database-managed review/version metadata; it includes collection responsibility, notes, rights and technical image metadata. No-op and timestamp-only updates create no revision. Primary identities and review metadata cannot be forged by caller writes.
 
 Prior review events and their snapshots remain unchanged when content is edited or reviewed again. Review maintenance updates must not recursively create content revisions. A review transaction must not approve an earlier version after a concurrent edit. Null/unspecified existing statuses remain valid for never-reviewed records; neither retrieval eligibility nor ranking gains a status filter.
@@ -41,7 +43,7 @@ Constrain every existing text-array column to an empty array or a one-dimensiona
 
 ### Inherit approved cleanup and preserve full-row grant binding
 
-The owner's later explicit deletion instruction supersedes this draft's earlier thumbnail-retention choice. [remove-unused-image-thumbnail](../remove-unused-image-thumbnail/proposal.md) owns physical removal and matching reader deployment. Recheck that result before implementing this still-unapproved review/ingestion proposal; do not recreate the removed column. Current business read setup grants SELECT on tables, not individual columns.
+The owner's later deletion instruction superseded the earlier thumbnail-retention choice. [remove-unused-image-thumbnail](../remove-unused-image-thumbnail/proposal.md) completed physical removal and matching reader deployment. This subsequently approved review/ingestion work inherits that baseline and must not recreate the removed column. Current business read setup grants SELECT on tables, not individual columns.
 
 Future row digests include all post-cleanup image fields and new review/version metadata. Never omit fields to reuse old grants. Inspect every reachable runtime: a new digest mismatch alone does not revoke an older runtime's grants. If an old revision has usable grants, retire that grant/runtime before proceeding. Reconfirm the currently empty production manifest, and create future grants only through the existing permission process.
 

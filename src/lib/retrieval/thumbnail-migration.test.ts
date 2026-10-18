@@ -39,7 +39,7 @@ it("keeps the new reader compatible before and after deletion and matches fresh 
   await readable(legacy);
   expect(await metadata(legacy)).toEqual(await metadata(fresh));
   expect(projection("images")).not.toContain("thumbnail_locator");
-  expect((await metadata(legacy)).filter((r) => r.table_name === "images")).toHaveLength(22);
+  expect((await metadata(legacy)).filter((r) => r.table_name === "images")).toHaveLength(Object.keys(archiveColumns.images).length);
 }, 20_000);
 it("refuses populated image records without discarding their thumbnail or changing schema", async () => {
   const db = await database(true);

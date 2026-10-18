@@ -5,10 +5,10 @@ import type { Database, Json } from "./database.generated";
 
 type LiveTables = Database["thangka"]["Tables"];
 type ExpectedRows = { [T in ArchiveTable]: ArchiveTransportRow<T> };
-type LiveRows = { [T in keyof LiveTables]: LiveTables[T]["Row"] };
+type LiveRows = { [T in ArchiveTable]: LiveTables[T]["Row"] };
 
 it("keeps all runtime columns, transport types and nullability aligned with the live-generated snapshot", () => {
-  expectTypeOf<ArchiveTable>().toEqualTypeOf<keyof LiveTables>();
+  expectTypeOf<ArchiveTable | "archive_reviews">().toEqualTypeOf<keyof LiveTables>();
   expectTypeOf<ExpectedRows>().toEqualTypeOf<LiveRows>();
 });
 it("keeps the structured search contract aligned with the deployed RPC", () => {

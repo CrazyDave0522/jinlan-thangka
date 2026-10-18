@@ -20,7 +20,8 @@ beforeAll(async () => {
     await db.query(`INSERT INTO thangka.artworks(id,title,title_en,alternative_titles,styles,subject_primary,subject_details,collection_name,accession_number,review_status)
       VALUES($1,$2,$3,$4::text[],$5::text[],$6,$7,$8,$9,$10)`,
       [id(i), values[i-1], i === 2 ? "TARA" : i === 5 ? "Tara image" : null,
-        i === 3 ? ["tara"] : i === 6 ? ["Old Tara"] : [], ["Menri"], "绿度母", "慈悲", "Museum", "A%(1)_*,'\\", [null,"pending","verified","disputed"][i % 4]]);
+        i === 3 ? ["tara"] : i === 6 ? ["Old Tara"] : [], ["Menri"], "绿度母", "慈悲", "Museum", "A%(1)_*,'\\", [null,"pending",null,null][i % 4]]);
+    if (i % 4 === 2 || i % 4 === 3) await db.query("SELECT thangka.record_archive_review('artwork',$1,1,NULL,$2,'Synthetic reviewer')", [id(i), i % 4 === 2 ? "verified" : "disputed"]);
   }
   await db.query("INSERT INTO thangka.artists(id,display_name,name_bo,name_en,aliases,styles) VALUES($1,$2,$3,$4,$5::text[],$6::text[])", [id(20),"画师", "མི་", "Artist", ["别名"], ["Menri"]]);
 }, 30_000);
@@ -68,7 +69,8 @@ describe("actual PostgreSQL candidate function", () => {
   it("matches the supplied schema field types/nullability without inventing columns", async () => {
     const {rows} = await db.query<{table_name:string;column_name:string;udt_name:string;is_nullable:string}>("SELECT table_name,column_name,udt_name,is_nullable FROM information_schema.columns WHERE table_schema='thangka'");
     const kinds:Record<string,string> = { uuid:"uuid", text:"text", "text[]":"_text", integer:"int4",numeric:"numeric",bigint:"int8",boolean:"bool",date:"date",timestamptz:"timestamptz" };
-    expect(rows.length).toBe(Object.values(archiveColumns).reduce((n,t)=>n+Object.keys(t).length,0));
+    expect(rows.filter((r)=>r.table_name in archiveColumns).length).toBe(Object.values(archiveColumns).reduce((n,t)=>n+Object.keys(t).length,0));
+    expect([...new Set(rows.map((r)=>r.table_name))].sort()).toEqual([...Object.keys(archiveColumns),"archive_reviews"].sort());
     for (const [table,cols] of Object.entries(archiveColumns)) for (const [column,spec] of Object.entries(cols)) {
       expect(rows.find((r)=>r.table_name===table && r.column_name===column)).toMatchObject({ udt_name:kinds[spec.kind],is_nullable:spec.nullable?"YES":"NO" });
     }

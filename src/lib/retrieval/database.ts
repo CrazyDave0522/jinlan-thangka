@@ -25,6 +25,8 @@ export const archiveColumns = {
     notes: { kind: "text", nullable: true },
     created_at: { kind: "timestamptz", nullable: false },
     updated_at: { kind: "timestamptz", nullable: false },
+    content_revision: { kind: "integer", nullable: false },
+    current_review_id: { kind: "uuid", nullable: true },
   },
   artworks: {
     id: { kind: "uuid", nullable: false },
@@ -58,6 +60,8 @@ export const archiveColumns = {
     notes: { kind: "text", nullable: true },
     created_at: { kind: "timestamptz", nullable: false },
     updated_at: { kind: "timestamptz", nullable: false },
+    content_revision: { kind: "integer", nullable: false },
+    current_review_id: { kind: "uuid", nullable: true },
   },
   sources: {
     id: { kind: "uuid", nullable: false },
@@ -102,6 +106,8 @@ export const archiveColumns = {
     notes: { kind: "text", nullable: true },
     created_at: { kind: "timestamptz", nullable: false },
     updated_at: { kind: "timestamptz", nullable: false },
+    content_revision: { kind: "integer", nullable: false },
+    current_review_id: { kind: "uuid", nullable: true },
   },
   artwork_artists: {
     artwork_id: { kind: "uuid", nullable: false },
@@ -143,6 +149,10 @@ export const archiveColumns = {
     updated_at: { kind: "timestamptz", nullable: false },
   },
 } as const;
+
+export function isArchiveReviewField(field: string) {
+  return field === "content_revision" || field === "current_review_id";
+}
 
 export const archiveEnums = {
   "artists.gender": ["male", "female", "other", "not_stated"],

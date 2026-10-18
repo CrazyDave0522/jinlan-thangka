@@ -115,7 +115,7 @@ The schema has four core tables: `artists`, `artworks`, `images`, and `sources`.
 - Source relationships record supported fields, citation locations, and evidence. Conflicting sources are allowed and must remain distinguishable.
 - Image accessibility and record verification do not establish usage rights. Display and AI processing must respect the recorded license and permission scope.
 - Planned Excel import rules require preserving original files, previewing conflicts, resolving ambiguous matches manually, retaining original-record-to-UUID mappings, and writing transactionally. These rules describe a future importer, not an existing feature.
-- This schema stores human-curated information. AI inferences, image vectors, chat data, and review history are reserved for separate future tables; model output must not automatically overwrite original knowledge fields.
+- This schema stores human-curated information. Operational entity-row review history uses the separate `archive_reviews` ledger and managed revisions/current pointers on artists, artworks and images. AI inferences, image vectors and chat data remain outside these business tables; model output must not automatically overwrite original knowledge fields. See [archive maintenance](../docs/archive-curation.md).
 
 See [database/schema.sql](../database/schema.sql) for exact definitions and [docs/database.md](../docs/database.md) for interpretation and integration notes.
 

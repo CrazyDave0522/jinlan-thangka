@@ -26,6 +26,16 @@ Keep the inspected pre-change grants/policies/RLS flags with the deployment reco
 
 To roll back this installation, first remove its consumer use and revoke anon execution on `thangka.search_archive_candidates(text,jsonb,integer)`, then drop that exact function. For each of the eight tables, remove only `archive_retrieval_select` policies known to have been created by this artifact. Restore SELECT/schema-USAGE grants and RLS flags to the recorded pre-change state; do not blindly revoke preexisting reads or disable preexisting RLS. Remove `thangka` from Data API exposure only if this installation introduced it and no other consumer needs it. No business records need restoring because installation does not modify them.
 
+## Archive Review and Ingestion Integrity
+
+`20261018_archive_data_quality.sql` is the owner-approved post-thumbnail increment. It retains the eight business tables, adds two managed fields to artists/artworks/images and a separate operational review ledger, and constrains source fields and flat text arrays. See [collection/review maintenance](../../docs/archive-curation.md) for review calls and recovery boundaries.
+
+Apply only after fresh target/data/ACL inspection and local SQL/concurrency/build/browser checks. Existing verified/disputed rows or invalid source/array values require explicit reconciliation; do not invent historical reviewers or rewrite evidence. This transactional artifact creates/revokes only its own operational objects and preserves current business SELECT policies/search grants. It is intentionally not idempotent; stop on unexpected routines or pre-existing objects.
+
+The initialized reference now contains these definitions for new databases. On an existing database, apply the incremental file once rather than rerunning the initializer or historical read setup. Verify live generated types and eight-business-table reads separately from ledger/function denials, then deploy the compatible reader before resuming administrative writes.
+
+`npm run test:db-concurrency` uses a pinned development-only PostgreSQL 17 engine on loopback, with synthetic credentials and an automatically removed cluster. It checks true two-connection races, old-reader compatibility and exact review-history restoration. PGlite remains the routine isolated SQL engine and does not replace this concurrency gate.
+
 ## Local SQL Verification
 
-`npm test -- src/lib/retrieval/sql.test.ts` executes the original schema and actual function/access artifacts in a disposable in-memory PostgreSQL (PGlite). It tests matching, caps, schema descriptor agreement, grants and invoker RLS with synthetic data. It does not certify the deployed Supabase schema, collation, PostgREST configuration or privileges.
+`npm test -- src/lib/retrieval/sql.test.ts src/lib/retrieval/archive-quality.test.ts` executes the current schema, preserved pre-quality fixture and actual incremental artifacts in disposable PGlite instances. It tests matching, caps, schema agreement, review guards, field/array constraints, grants and invoker RLS with synthetic data. It does not certify deployed Supabase schema, collation, PostgREST configuration, privileges or true multi-connection locking.

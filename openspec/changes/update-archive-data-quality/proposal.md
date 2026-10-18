@@ -2,9 +2,9 @@
 
 ## Status
 
-Draft for owner review. No implementation or remote database modification is authorized or performed by drafting this proposal.
+Approved for implementation on 2026-10-18. After the focused thumbnail cleanup, the owner instructed a final check of the remaining proposal and implementation if no blocking issue remained. The final check retains this scope and requires the concrete implementation/concurrency/security tests below; it does not assert that they have passed yet.
 
-Owner clarification on 2026-10-18 explicitly approves physical unused-field cleanup with matching code. That work is extracted into [remove-unused-image-thumbnail](../remove-unused-image-thumbnail/proposal.md). This review/ingestion proposal remains unapproved and must use the post-cleanup schema as its future baseline.
+The earlier physical unused-field cleanup is completed in [remove-unused-image-thumbnail](../remove-unused-image-thumbnail/proposal.md). This review/ingestion work starts from its accepted post-cleanup main@bf471a9 baseline with eight empty business tables and 123 columns, subject to a fresh remote preflight before application.
 
 ## Why
 
@@ -40,4 +40,4 @@ The owner confirmed that collection involves multiple people or handoffs, that t
 - Deletion or merging of source-wide notes, normalized dates or optional descriptive fields without a demonstrated semantic replacement.
 - A full edit-history system covering every business and relationship table, authenticated curator identity, and review of dependency graphs. This increment records entity-row review decisions; it does not certify every linked source or artist association.
 
-See [design](design.md), [requirements](specs/archive-curation/spec.md), [acceptance cases](acceptance.md), [review findings](review.md) and [tasks](tasks.md). The proposal review is not implementation approval or evidence that SQL behavior has already passed.
+See [design](design.md), [requirements](specs/archive-curation/spec.md), [acceptance cases](acceptance.md), [review findings](review.md) and [tasks](tasks.md). Historical proposal-review evidence does not establish SQL behavior; the owner's subsequent approval and current implementation evidence are recorded separately in [verification](verification.md).

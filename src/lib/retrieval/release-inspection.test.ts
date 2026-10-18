@@ -11,6 +11,10 @@ type Inspection = {
   tables: { table_name: string; rls_enabled: boolean; anon_select: boolean; anon_insert: boolean; anon_update: boolean; anon_delete: boolean; anon_truncate: boolean }[];
   policies: { tablename: string; cmd: string; qual: string }[];
   functions: { security_definer: boolean; volatility: string; anon_execute: boolean; public_execute: boolean }[];
+  operational_tables: { table_name: string; rls_enabled: boolean; anon_select: boolean; anon_insert: boolean; authenticated_access: boolean }[];
+  maintenance_functions: { security_definer: boolean; anon_execute: boolean; public_execute: boolean }[];
+  unexpected_tables: string[]; unexpected_functions: unknown[];
+  review_sequences: { name: string; anon_access: boolean }[];
 };
 async function inspect() {
   return (await db.query<{ release_inspection: Inspection }>(inspection)).rows[0].release_inspection;
@@ -33,6 +37,21 @@ it("reports all eight empty counts, effective anon grants, RLS policies and the 
   expect(result.policies).toHaveLength(8);
   for (const policy of result.policies) expect(policy).toMatchObject({ cmd: "SELECT", qual: "true" });
   expect(result.functions).toEqual([expect.objectContaining({ security_definer: false, volatility: "s", anon_execute: true, public_execute: false })]);
+  expect(result.operational_tables).toEqual([expect.objectContaining({ table_name: "archive_reviews", rls_enabled: true, anon_select: false, anon_insert: false, authenticated_access: false })]);
+  expect(result.maintenance_functions).toHaveLength(5);
+  for (const fn of result.maintenance_functions) expect(fn).toMatchObject({ security_definer: false, anon_execute: false, public_execute: false });
+  expect(result.review_sequences).toEqual([{ name: "archive_review_order", anon_access: false }]);
+  expect(result.unexpected_tables).toEqual([]);
+  expect(result.unexpected_functions).toEqual([]);
+});
+
+it("reports unexpected objects rather than hiding them behind the business-table filter", async () => {
+  await db.exec("CREATE TABLE thangka.unexpected_probe(id integer); CREATE FUNCTION thangka.unexpected_probe() RETURNS integer LANGUAGE SQL AS 'SELECT 1'; CREATE FUNCTION thangka.record_archive_review(integer) RETURNS integer LANGUAGE SQL AS 'SELECT 1'");
+  try {
+    const result = await inspect();
+    expect(result.unexpected_tables).toEqual(["unexpected_probe"]);
+    expect(result.unexpected_functions).toEqual(expect.arrayContaining([expect.objectContaining({ name: "unexpected_probe" }), expect.objectContaining({ name: "record_archive_review" })]));
+  } finally { await db.exec("DROP FUNCTION thangka.record_archive_review(integer); DROP FUNCTION thangka.unexpected_probe(); DROP TABLE thangka.unexpected_probe"); }
 });
 
 it("exposes the inspection role and separates RLS-hidden emptiness from privileged counts without changing rows", async () => {

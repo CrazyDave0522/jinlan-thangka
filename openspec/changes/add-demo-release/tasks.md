@@ -28,6 +28,8 @@ The owner requested main integration on 2026-10-18 after accepting A. All featur
 
 ## 4. Milestone B: Deferred Until Real Material Exists
 
+On 2026-10-18 the owner reconfirmed that real material is unavailable and requested B-stage preparation. The [real-data handoff](../../../docs/demo-real-data-handoff.md) now maps required records, source scopes, permissions, independent judgments and execution order to B01–B06. The current-candidate continuation review is recorded in verification.md. Preparation does not complete any B or whole-change task below.
+
 - [ ] 4.1 Resume when the owner supplies/approves actual records/sources, permitted assets/grants, expected domain judgments and funded evaluation scope.
 - [ ] 4.2 Verify B01–B02 actual retrieval, claim-to-source support and source/export accuracy.
 - [ ] 4.3 Run B03–B06 numbered/ordinary-photo positives, similar/ambiguous negatives and actual reference access under the archived protocol; record failures and limits.

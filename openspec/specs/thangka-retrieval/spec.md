@@ -17,13 +17,19 @@ The system SHALL provide structured server-side artist/artwork lookup and search
 
 ### Requirement: Complete archive eligibility
 
-The system SHALL consider all current dedicated archive records and contents eligible, without publication/privacy/review-status exclusion. It SHALL preserve recorded uncertainty, attribution, rights, dates, notes and null values rather than equating eligibility with factual certainty or image usage permission.
+The system SHALL consider all records and contents of the eight business tables eligible, without publication/privacy/review-status exclusion. It SHALL preserve uncertainty, attribution, rights, dates, notes and null values rather than equating eligibility with truth or image-use permission. The operational review ledger SHALL remain outside this business-evidence graph; this SHALL NOT create private/public subsets of business records.
 
 #### Scenario: Retrieve an unverified or disputed candidate
 
 - **WHEN** an otherwise relevant record has pending, disputed or unspecified review status
 - **THEN** it remains eligible with its original review/attribution metadata
 - **AND** its status does not change lexical ranking or establish factual truth.
+
+#### Scenario: Distinguish operational history from business evidence
+
+- **WHEN** versioned review history exists alongside the eight business tables
+- **THEN** retrieval still explicitly projects every current business-table column without adding a ledger expansion query
+- **AND** schema/grant inspection inventories the ledger separately and does not grant anonymous ledger access or hide unexpected objects.
 
 ### Requirement: Validated structured queries
 
@@ -160,3 +166,25 @@ The system SHALL verify deployed schema, generated types, custom schema exposure
 - **WHEN** only local/mocked tests can run
 - **THEN** the report identifies SQL/live checks as outstanding
 - **AND** mock success does not certify real SQL matching, permissions or archive integration.
+
+### Requirement: Unused thumbnail removal with matching readers
+
+The system SHALL remove `images.thumbnail_locator` from the archive and all active application row/type/fixture contracts. It SHALL preserve the other eight-table fields, identities, rights, source links and read-only grants. The new reader SHALL work before and after removal; the compatible deployment SHALL precede SQL application. Full-row image grants SHALL reject pre-change digests without bypassing permission checks.
+
+#### Scenario: Read either side of the migration
+
+- **WHEN** the new application reads the archive before or after thumbnail-column removal
+- **THEN** explicit eight-table projections and runtime types agree with returned rows
+- **AND** the removed field is not an answer reference or a model fact.
+
+#### Scenario: Apply guarded empty-image migration
+
+- **WHEN** the authorized migration finds the original nullable text column and an empty images table
+- **THEN** it removes only that column transactionally and requests schema-cache refresh
+- **AND** populated images, unexpected schema or dependent objects cause rollback rather than data deletion, CASCADE or guessed reconciliation.
+
+#### Scenario: Retain exact grant binding
+
+- **WHEN** a reference grant pins the old image row including its thumbnail field
+- **THEN** it fails against the current full-row digest
+- **AND** a new grant still requires actual image-use permission and the existing reviewed process.

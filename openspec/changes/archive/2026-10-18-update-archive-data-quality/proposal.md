@@ -2,9 +2,11 @@
 
 ## Status
 
+Implemented, deployed and archived on 2026-10-18 after the owner's instruction to archive eligible changes. See [verification](verification.md) and the [archival assessment](archival.md). The approval/preflight language below retains its original chronology; release B remains separate and open.
+
 Approved for implementation on 2026-10-18. After the focused thumbnail cleanup, the owner instructed a final check of the remaining proposal and implementation if no blocking issue remained. The final check retains this scope and requires the concrete implementation/concurrency/security tests below; it does not assert that they have passed yet.
 
-The earlier physical unused-field cleanup is completed in [remove-unused-image-thumbnail](../remove-unused-image-thumbnail/proposal.md). This review/ingestion work starts from its accepted post-cleanup main@bf471a9 baseline with eight empty business tables and 123 columns, subject to a fresh remote preflight before application.
+The earlier physical unused-field cleanup is completed in [remove-unused-image-thumbnail](../2026-10-18-remove-unused-image-thumbnail/proposal.md). This review/ingestion work starts from its accepted post-cleanup main@bf471a9 baseline with eight empty business tables and 123 columns, subject to a fresh remote preflight before application.
 
 ## Why
 

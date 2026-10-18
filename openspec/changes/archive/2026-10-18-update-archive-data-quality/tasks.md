@@ -25,6 +25,6 @@
 - [x] 4.1 Inspect the actual shared target, current data/ACLs and all reachable readers/reference manifests; resolve conflicts and rehearse old-reader compatibility and rollback before approved application.
 - [x] 4.2 Apply bounded transactional additive SQL with maintenance writes frozen; verify existing reads, then validate/promote the compatible candidate and resume maintenance. Do not drop columns, import fixtures or make new paid calls.
 - [x] 4.3 Verify live schema/types, review authority, ledger denials and read-only eight-table/RPC behavior; record exact database/deployment state and refresh affected release checks without replacing historical A evidence or completing B.
-- [ ] 4.4 Obtain owner acceptance and archive only after implementation, coordinated application and required checks are complete.
+- [x] 4.4 Obtain owner acceptance and archive only after implementation, coordinated application and required checks are complete. The owner requested archival of eligible changes on 2026-10-18; all technical/deployment gates are complete. The separate archival assessment preserves real-data and identity limits.
 
 The earlier deletion-only authorization is historical. The subsequent owner instruction now approves the remaining proposal after final checking; earlier review counts and thumbnail-retention decisions retain their original evidence boundary.

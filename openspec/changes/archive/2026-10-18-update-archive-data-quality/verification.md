@@ -50,7 +50,7 @@ The public alias passes all eight core viewport shells, with no horizontal overf
 
 The coordinated application is complete; trusted SQL maintenance can resume under the documented review interface. No remote fixtures, data edits or paid calls were made. The documentation-only closure records these revision-specific results; its application/migration/configuration tree must remain identical to 16fb474, with final alias readiness checked before handoff. Temporary source/link files are removed after verification; no OIDC file was created.
 
-Tasks 1–3 and 4.1–4.3 are complete (16/17). Task 4.4 remains open for owner acceptance and normal archival; no owner acceptance is inferred from automated verification.
+At the implementation handoff, tasks 1–3 and 4.1–4.3 were complete (16/17), leaving owner acceptance/archive separate. The owner subsequently requested archival of eligible changes; the [archival assessment](archival.md) records that authorization, fresh readiness checks and completion of task 4.4 without inventing additional hands-on or real-data acceptance.
 
 ## Release Boundary
 

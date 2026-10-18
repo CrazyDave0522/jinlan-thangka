@@ -16,7 +16,7 @@ Both SQL files are transactional and intentionally use CREATE rather than silent
 
 `20261018_remove_image_thumbnail.sql` removes only `images.thumbnail_locator`, following the owner's development-stage cleanup authorization. Deploy its compatible reader first: the new projection works on both schemas, while an older reader still requests the removed field. Do not rerun the initializer or the installed search/read setup.
 
-The migration locks images with bounded timeouts, verifies the original nullable text column and requires images to be empty. Populated images or dependent objects cause rollback; it never uses CASCADE or deletes rows. The transaction preserves existing grants/policies and requests PostgREST schema-cache reload. Compare actual live types and anonymous eight-table/RPC reads after application. See the [cleanup verification](../../openspec/changes/remove-unused-image-thumbnail/verification.md).
+The migration locks images with bounded timeouts, verifies the original nullable text column and requires images to be empty. Populated images or dependent objects cause rollback; it never uses CASCADE or deletes rows. The transaction preserves existing grants/policies and requests PostgREST schema-cache reload. Compare actual live types and anonymous eight-table/RPC reads after application. See the [cleanup verification](../../openspec/changes/archive/2026-10-18-remove-unused-image-thumbnail/verification.md).
 
 To restore an older reader after successful removal, first add back the nullable text column and its original comment, refresh the schema cache and verify that reader's projection. Do not roll an old reader onto the post-removal schema directly. No thumbnail values were discarded when the empty-table guard passed.
 

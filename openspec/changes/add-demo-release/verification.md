@@ -380,3 +380,21 @@ Merge validation passes npm run check (lint, TypeScript, 35 files/406 tests; 6.4
 Fresh Vercel metadata identifies the same project/account, main Production branch, automatic Git deployments enabled, prior Production dpl_8JNNKR9vqpvs7X44Vy2PsRtLMSv8 and existing SSO/zero automation bypass. Existing shared variable IDs/scopes/edit timestamps are captured privately as metadata only. The owner was informed that pushing main triggers that existing automatic Production build. Normal Git publication and its resulting deployment are verified after this local integration record; no completed remote build is asserted by this paragraph. No environment change, database/Storage write or active provider question is part of the merge.
 
 A remains accepted; tasks remain 17/22. Keep this change under openspec/changes/add-demo-release so B can resume with real material and final candidate/whole-change checks. Source integration does not complete tasks 4.1–4.3 or 5.1–5.2 and does not archive the change.
+
+
+## Archive Readiness and B-Stage Preparation
+
+On 2026-10-18 the owner requested archival of eligible changes and continuation of unfinished work, then explicitly reconfirmed that real material is not ready and requested B-stage preparation. Only the two completed database changes are archived. This release remains active at 17/22 tasks: tasks 4.1–4.3 and 5.1–5.2 stay open.
+
+Fresh read-only archival preflight at 2026-10-18T08:42:15Z confirms PostgreSQL 17.11, eight empty business tables, 129 business columns, a 12-column operational ledger with zero rows, no thumbnail and no unexpected tables/functions. Existing business read access remains separate from five restricted invoker helpers and the ledger. Production dpl_EPLokWWR2NJXXw1VXJButzbsTH52 is READY/PROMOTED at main@3a32a19 with jinlan-thangka.vercel.app assigned. Its runtime is the verified 16fb474 implementation; the later closure is documentation only. No data/Storage/configuration write or paid dispatch is part of this archival continuation.
+
+| Change since historical A | Applicable evidence | Retained limit |
+| --- | --- | --- |
+| Thumbnail removal and new row-review metadata/source/array constraints | [Thumbnail rollout](../archive/2026-10-18-remove-unused-image-thumbnail/verification.md) and [data-quality rollout](../archive/2026-10-18-update-archive-data-quality/verification.md): final 432-test check, 45 affected real-route Chromium cases, ordinary build, eight PostgreSQL checks, actual-backup restore, canonical types and live read/denial checks | Does not establish real source support or artwork identity |
+| Current protected disabled candidate and public deployment | Data-quality verification records eight viewport shells, disabled 503/422 behavior, public 200/405 and unchanged shared settings | No new active-provider semantic sample; historical P/R results remain bound to 37af020 |
+| Remaining UI/control behavior | Components/request UI unchanged by these database increments; prior full 107-case suite remains historical, with affected source/image/composed cases rerun as above | No claim that 107 cases were rerun on the new runtime or that emulation proves native-device coverage |
+| This archival/preparation change | Markdown/specification moves, normative promotion and link/status repairs only; compare the final diff with 3a32a19 | No runtime/configuration changes; normal archival still does not complete this release |
+
+The [real-data handoff](../../../docs/demo-real-data-handoff.md) now identifies actual records, source scopes, AI-processing rights, visitor/reference examples and independent judgments needed for B01–B06. It provides the import/review/grant order, case-freeze and funded-scope gates, execution/closure steps and a result-record template. No placeholder records, synthetic positives or guessed judgments are substituted for absent material.
+
+Next dependent action: review the owner's actual local material/permission locations when available, then freeze the concrete cases and evaluation scope. Administrative preparation is ready; actual retrieval/source/identity/access judgments and final-candidate/owner acceptance remain unavailable. Do not request another A signoff, clear curated data or transfer the old P/R allowance to an unspecified B batch.

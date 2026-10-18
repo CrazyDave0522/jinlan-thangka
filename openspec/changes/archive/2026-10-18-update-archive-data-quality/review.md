@@ -6,7 +6,7 @@ Reviewed on 2026-10-18 at the owner's request. Pass one checked review-state sem
 
 The earlier connected archive review remains the source of the eight-table/124-column/empty-data baseline. This proposal review did not refresh remote counts or claim that the database is still empty at a later migration time.
 
-Later owner instruction on the same date explicitly authorizes physical unused-field removal with matching code. The earlier R03 retention resolution below is historical and superseded for thumbnails by [the independent cleanup](../remove-unused-image-thumbnail/proposal.md). Its matching-reader-first rollout remains mandatory; the review ledger and other ingestion changes are still unapproved.
+Later owner instruction on the same date explicitly authorizes physical unused-field removal with matching code. The earlier R03 retention resolution below is historical and superseded for thumbnails by [the independent cleanup](../2026-10-18-remove-unused-image-thumbnail/proposal.md). Its matching-reader-first rollout remains mandatory; the review ledger and other ingestion changes are still unapproved.
 
 ## Findings and Resolutions
 
@@ -25,9 +25,9 @@ The new [acceptance matrix](acceptance.md) also covers invalid-data preflight, d
 
 ## Evidence Used
 
-- Current [row parser](../../../src/lib/retrieval/rows.ts) requires flat string arrays. An in-memory PGlite instance initialized from the unchanged reference schema accepted a two-dimensional `artists.aliases` array and returned nested JSON. Only that isolated database received synthetic data; it was closed afterwards.
-- Current [catalogue construction](../../../src/lib/answers/catalogue.ts) iterates all runtime fields, and [reference validation](../../../src/lib/answers/contracts.ts) requires a supported product field label. This establishes the integration work behind R06 without modifying the implementation.
-- Current [read setup](../../../database/migrations/20261016_archive_read_access.sql) grants SELECT on named tables, not individual columns. [Release inspection](../../../scripts/inspect-archive-release.sql) inventories the schema, while its tests assume eight tables; [SQL tests](../../../src/lib/retrieval/sql.test.ts) count all schema columns. These are explicit implementation update targets.
+- Current [row parser](../../../../src/lib/retrieval/rows.ts) requires flat string arrays. An in-memory PGlite instance initialized from the unchanged reference schema accepted a two-dimensional `artists.aliases` array and returned nested JSON. Only that isolated database received synthetic data; it was closed afterwards.
+- Current [catalogue construction](../../../../src/lib/answers/catalogue.ts) iterates all runtime fields, and [reference validation](../../../../src/lib/answers/contracts.ts) requires a supported product field label. This establishes the integration work behind R06 without modifying the implementation.
+- Current [read setup](../../../../database/migrations/20261016_archive_read_access.sql) grants SELECT on named tables, not individual columns. [Release inspection](../../../../scripts/inspect-archive-release.sql) inventories the schema, while its tests assume eight tables; [SQL tests](../../../../src/lib/retrieval/sql.test.ts) count all schema columns. These are explicit implementation update targets.
 - [PostgreSQL 17 arrays](https://www.postgresql.org/docs/17/arrays.html#ARRAYS-DECLARATION) confirms that declared dimensionality is not enforced; the isolated probe demonstrates the resulting application mismatch in this repository.
 - [PostgreSQL 17 function definitions](https://www.postgresql.org/docs/17/sql-createfunction.html) documents invoker authority and new functions' default PUBLIC execution. Privilege changes must be transactional with creation; a source-code review alone cannot certify actual deployed grants.
 - [PostgreSQL 17 row locks](https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-ROWS) explains serialization and updated-row behavior. The installed PGlite README lists single-user/connection operation, so a sequential embedded SQL suite is insufficient evidence for Q05.

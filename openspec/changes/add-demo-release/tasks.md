@@ -24,6 +24,8 @@
 - [x] 3.6 Record owner acceptance following the desktop/mobile hands-on checklist. On 2026-10-18 the owner reported that their actual acceptance review found no issues. This closes the owner gate at the owner-report level; exact device/browser/URL, action-by-action results and manual provider usage were not supplied. Retain those evidence limits without inventing an extra coordinated batch or labeling automated traces as native results.
 - [x] 3.7 Exercise/document rollback after each batch. Both branch switches restored/read back false; exact sampled pre-batch 299acb3 disabled alias restored, tested 37af020 immutable target retained. Both enabled dpl_EWkwFH1i8pUXztaBevx9eyzL34Yp and dpl_8dbPuGUFuYHJGWURWL6XyqQVnpr8 removed; direct page/API retirement checked without extra questions. Shared environment metadata, Production and SSO retained; other test URLs protected. A14 is subsequently accepted on owner report; milestone A is complete, with B and whole-change completion still open.
 
+The owner requested main integration on 2026-10-18 after accepting A. All feature commits through 8a127cb were fast-forwarded into local main without conflicts; publication/deployment facts are tracked separately from A/B completion. See [main integration](verification.md#main-integration). The following B and whole-change tasks remain open; the change stays unarchived.
+
 ## 4. Milestone B: Deferred Until Real Material Exists
 
 - [ ] 4.1 Resume when the owner supplies/approves actual records/sources, permitted assets/grants, expected domain judgments and funded evaluation scope.

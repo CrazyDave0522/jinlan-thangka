@@ -33,7 +33,7 @@ The following versions and ranges are declared in `package.json`:
 - Tailwind CSS 4.x, integrated through `@tailwindcss/turbopack`.
 - shadcn/ui with its `base-nova` preset (Base UI primitives), neutral theme, and Lucide React icons.
 - Supabase JavaScript client `^2.117.3` and SSR helpers `^0.12.7`.
-- PostgreSQL schema reference targeting version 13+; the deployed database version is unverified.
+- PostgreSQL schema reference targeting version 13+; connected inspection on 2026-10-18 confirms PostgreSQL 17.11.
 - ESLint 9.x with Next.js Core Web Vitals and TypeScript configurations.
 - npm with `package-lock.json` for dependency locking.
 - OpenSpec for project context, capability specifications, and change proposals.
@@ -141,6 +141,8 @@ See [database/schema.sql](../database/schema.sql) for exact definitions and [doc
 - DeepSeek: confirmed AI provider for conversation and answer generation. The accepted grounded-answer design specifies the initial text model, native-fetch adapter and server-only key settings; the owner reports placing the key locally, without exposing it to the assistant. Text orchestration is implemented with paid generation disabled by default. The authorized local live evaluation and manual acceptance are complete; deployment duration and access remain predeployment checks. Image input is documented in the [official Vision guide](https://api-docs.deepseek.com/guides/vision/). No vector or analytics service is configured.
 
 ## Current Release Proposal
+
+On 2026-10-18 the owner explicitly authorized unused-field removal provided application/database logic matches. The focused [thumbnail cleanup](changes/remove-unused-image-thumbnail/proposal.md) is implemented and applied: the compatible reader is published at main@90ea010, Production dpl_4jdHL5Pdo8sEvcAuhLXbxbnRVmER was verified before SQL, and only images.thumbnail_locator was removed. Fresh readback confirms eight empty business tables with 123 columns, unchanged constraints/indexes/triggers/grants and matching live-generated types; all eight table reads and the RPC pass. The final record commit contains documentation only. The broader [review/ingestion proposal](changes/update-archive-data-quality/proposal.md) remains unapproved; no review ledger or new ingestion constraints were introduced. Release B and final acceptance remain open as below.
 
 After A acceptance, the owner requested main integration on 2026-10-18. Accepted feature work through 8a127cb is fast-forwarded into local main; see [integration scope and validation](changes/add-demo-release/verification.md#main-integration). This integrates completed engineering while retaining the active change and deferred B/final acceptance tasks. Remote publication and automatic Vercel deployment are separate facts to verify after that integration.
 

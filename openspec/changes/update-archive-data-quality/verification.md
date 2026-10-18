@@ -4,7 +4,7 @@
 
 On 2026-10-18 the owner instructed one final check and implementation of the remaining reviewed proposal if clear. Final review retained the approved scope; thumbnail removal is already complete. Work uses `feat/update-archive-data-quality` from main@bf471a9, whose published archive baseline has eight empty business tables and 123 columns. No real-data/source/domain acceptance is inferred from that baseline.
 
-## Implemented Locally
+## Implementation
 
 - Added managed revisions/current-review pointers and a typed append-only review ledger. Database-derived snapshots and null-safe expected revision/previous-decision comparisons prevent stale or replayed approvals; content changes clear verification.
 - Added target-field constraints and empty-or-flat non-null text-array checks. Migration stops rather than rewriting invalid data or inventing historical reviewers.
@@ -22,7 +22,7 @@ On 2026-10-18 the owner instructed one final check and implementation of the rem
 
 Ignored artifacts under `evaluation-results/archive-quality/` contain synthetic restore payloads, concurrency results and later metadata. No credentials or real business rows belong in tracked evidence.
 
-## Remote Gates
+## Shared Database Verification
 
 Applied on 2026-10-18 after fresh preflight of the same Supabase origin (SHA-256 `7ba7959ffd4bbb42f2a384b708a01ec79cb66e1dcdf15d6cee4554fa1db3dd6d`). PostgreSQL 17.11, postgres/BYPASSRLS, eight empty business tables and 123 columns matched the post-thumbnail baseline. The canonical pre-migration types matched main@bf471a9 exactly. Both reachable historical manifest revisions and the current production manifest contain no grants.
 
@@ -32,7 +32,25 @@ The bounded additive transaction succeeded. Fresh inspection finds nine tables, 
 
 Canonical live types were regenerated and `npm run check` again passes 432 tests/38 files. New and original explicit projections return HTTP 200 on all eight business tables; search RPC also returns 200. Anonymous ledger SELECT and review RPC both return HTTP 401 / SQLSTATE 42501. The nonexistent-entity RPC probe cannot create a review. Concurrent CLI reads raced while initializing the shared temporary login role; one failed authentication. A sequential bounded retry completed and matched the baseline. Further Supabase CLI invocations are sequential; no password extraction or credential change is required.
 
-Protected disabled Preview and compatible Production publication remain required. Administrative writes stay paused during the coordinated transition. No remote fixtures or paid calls were made.
+## Protected Candidate Verification
+
+Commit `16fb474434c2632fca24ef87da2b97e9ed34ceef` was archived from tracked Git files into a temporary credential-free directory. Its local project context was verified against Vercel project `prj_FnmBJHdIVIUQSobZy5EAYNV3lAkF`, team `team_p6vs7dieKCGN1MX85ZjTHP3h`. CLI Preview `dpl_13MboScxpBZYcC6cMhffEmGbuhDA` is READY and its deployment metadata confirms the reviewed commit and project.
+
+Exact candidate: https://jinlan-thangka-6v3762n50-crazydave0522s-projects.vercel.app . Both provider switches were explicitly false at build and runtime for this deployment only. Anonymous home access returns 302; same-project development OIDC authenticated access returns 200. Origin-scoped browser headers are transient, with no persisted token or authentication trace.
+
+All eight core viewport shells pass with a reachable composer, no horizontal overflow and no page errors. A valid text submission returns 503/generation_unavailable; a valid selected-image submission returns 422/image_understanding_unavailable, both no-store. Paid calls are zero. Deterministic real-route behavior remains covered by the 45 local cases.
+
+Fresh inherited Config checks confirm Preview and Production use the same inspected Supabase origin. Shared text flags are true; shared vision/fixture flags are absent. Those settings, existing branch overrides and Deployment Protection are unchanged. The candidate's explicit false overrides isolate its no-cost checks.
+
+## Production Publication
+
+Remote main was unchanged at bf471a9 before the candidate was fast-forwarded and pushed. Git-triggered Production `dpl_EZVMQsrFgGTrXTVayn5bghL9nTCj`, main@16fb474, is READY/PROMOTED and owns `jinlan-thangka.vercel.app` plus its existing main/project aliases. Its immutable URL is https://jinlan-thangka-czfvrrcjp-crazydave0522s-projects.vercel.app .
+
+The public alias passes all eight core viewport shells, with no horizontal overflow, a reachable composer and no page errors. GET /api/chat returns the expected 405. No Production chat POST was made because its existing text setting is enabled. Protected disabled Preview and deterministic local upstreams provide the behavior checks without new paid calls.
+
+The coordinated application is complete; trusted SQL maintenance can resume under the documented review interface. No remote fixtures, data edits or paid calls were made. The documentation-only closure records these revision-specific results; its application/migration/configuration tree must remain identical to 16fb474, with final alias readiness checked before handoff. Temporary source/link files are removed after verification; no OIDC file was created.
+
+Tasks 1–3 and 4.1–4.3 are complete (16/17). Task 4.4 remains open for owner acceptance and normal archival; no owner acceptance is inferred from automated verification.
 
 ## Release Boundary
 

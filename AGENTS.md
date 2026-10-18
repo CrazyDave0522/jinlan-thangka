@@ -31,6 +31,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Use English for source code, identifiers, filenames, documentation, source comments, and SQL comments. The product interface and user-facing copy must be in Simplified Chinese; brand artwork may contain Chinese lettering. Keep this distinction when designing or implementing screens.
 
+## Git workflow
+
+When the owner authorizes integration of completed work, including OpenSpec archival, merge directly into `main` and push through the existing Git remote. This is a single-maintainer project; a PR is optional unless the owner requests one or repository rules require it. This owner-confirmed workflow supersedes the separate-PR default in `openspec/AGENTS.md`.
+
 ## UI conventions
 
 - Use shadcn/ui with the `base-nova` preset, the neutral theme, and Lucide icons. Configuration lives in `components.json` and theme tokens in `src/app/globals.css`.

@@ -10,7 +10,7 @@ Fresh archival inspection confirms Production dpl_EPLokWWR2NJXXw1VXJButzbsTH52 i
 
 ## Specification Promotion and Limits
 
-Promote archive-curation, the operational answer-metadata boundary and the complete business-eligibility clarification using normal OpenSpec archival. Preserve every existing requirement except the explicitly modified eligibility block. Use a separate archival branch/PR and repair moved/inbound document links.
+Promote archive-curation, the operational answer-metadata boundary and the complete business-eligibility clarification using normal OpenSpec archival. Preserve every existing requirement except the explicitly modified eligibility block. A separate archival branch was prepared and moved/inbound document links repaired; the owner subsequently authorized direct integration for this single-maintainer project, superseding the PR step.
 
 All seventeen tasks are complete at this implementation/deployment boundary. Collection/handoff and row review remain SQL maintenance, with no management UI or proof of authenticated personal identity. Linked-source graph review, broader search and an importer remain outside scope.
 
@@ -20,4 +20,4 @@ The owner reconfirmed that real material is not ready and requested B-stage prep
 
 Normal OpenSpec archival completed with specification updates enabled. Across both changes, seven requirements were added and one was modified; every promoted and retained normative block matches the expected before/delta composition. All nine current OpenSpec items pass strict validation. The complete repository Markdown audit finds 401 valid local file/heading links and no obsolete active-directory references. Both archived checklists are complete (8/8 and 17/17); the release checklist remains 17/22.
 
-The archival/preparation diff contains Markdown only, so the previously recorded implementation checks remain applicable at their stated boundaries. No application/build/test/database source or configuration changes; no paid calls, remote data writes or migration reapplication occur. Publication uses the separate archival branch/PR; its result is verified separately rather than inferred from these local checks.
+The archival/preparation diff contains Markdown only, so the previously recorded implementation checks remain applicable at their stated boundaries. No application/build/test/database source or configuration changes; no paid calls, remote data writes or migration reapplication occur. Publication uses the owner's authorized direct merge/push through the existing Git connection; its result is verified separately rather than inferred from these local checks.

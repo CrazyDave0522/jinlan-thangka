@@ -10,7 +10,7 @@ Earlier statements that the broader proposal was unapproved describe their origi
 
 ## Archive Scope
 
-Promote the thumbnail-removal requirement into thangka-retrieval and move this change through normal OpenSpec archival with specification updates enabled. Use a separate archival branch/PR under the project workflow. This operation changes documentation and specifications only; it does not rerun SQL, alter runtime configuration, import records, activate model calls or execute reversal.
+Promote the thumbnail-removal requirement into thangka-retrieval and move this change through normal OpenSpec archival with specification updates enabled. A separate archival branch was prepared under the template workflow; the owner subsequently authorized direct integration for this single-maintainer project, superseding the PR step. This operation changes documentation and specifications only; it does not rerun SQL, alter runtime configuration, import records, activate model calls or execute reversal.
 
 Release B, real source/identity accuracy and permitted reference activation remain in the active [demo release](../../add-demo-release/tasks.md). The [reversal procedure](verification.md#reversal) remains a contingency requiring fresh inspection, not an executed rollback.
 
@@ -18,4 +18,4 @@ Release B, real source/identity accuracy and permitted reference activation rema
 
 Normal OpenSpec archival completed with specification updates enabled. Across both changes, seven requirements were added and one was modified; every promoted and retained normative block matches the expected before/delta composition. All nine current OpenSpec items pass strict validation. The complete repository Markdown audit finds 401 valid local file/heading links and no obsolete active-directory references. Both archived checklists are complete (8/8 and 17/17); the release checklist remains 17/22.
 
-The archival/preparation diff contains Markdown only, so the previously recorded implementation checks remain applicable at their stated boundaries. No application/build/test/database source or configuration changes; no paid calls, remote data writes or migration reapplication occur. Publication uses the separate archival branch/PR; its result is verified separately rather than inferred from these local checks.
+The archival/preparation diff contains Markdown only, so the previously recorded implementation checks remain applicable at their stated boundaries. No application/build/test/database source or configuration changes; no paid calls, remote data writes or migration reapplication occur. Publication uses the owner's authorized direct merge/push through the existing Git connection; its result is verified separately rather than inferred from these local checks.

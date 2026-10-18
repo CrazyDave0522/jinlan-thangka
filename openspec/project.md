@@ -101,7 +101,7 @@ Demo acceptance examples should cover text questions, matching a known database 
 ### Git Workflow
 
 - The GitHub repository is `CrazyDave0522/jinlan-thangka`, with `origin` configured and existing work committed on `main`.
-- Recent commits use concise English descriptions. No mandatory commit-message format, feature-branch policy, or pull-request policy has been established.
+- Recent commits use concise English descriptions. On 2026-10-18 the owner clarified that this is a single-maintainer project and authorized direct merging of the completed archival work. Authorized integration uses direct merge/push to main; a PR is optional unless explicitly requested or required by repository rules. This supersedes the archival template's separate-PR default.
 - Keep credentials and local environment files out of version control. `.env.example` is the tracked configuration template.
 - Follow `openspec/AGENTS.md` for new capabilities, breaking changes, architecture changes, and security changes. Prepare a proposal and obtain approval before implementing changes that require that workflow.
 - Routine context documentation edits do not constitute approval for feature implementation or database changes.

@@ -83,7 +83,6 @@ export const archiveColumns = {
     id: { kind: "uuid", nullable: false },
     artwork_id: { kind: "uuid", nullable: false },
     storage_locator: { kind: "text", nullable: false },
-    thumbnail_locator: { kind: "text", nullable: true },
     image_type: { kind: "text", nullable: true },
     is_primary: { kind: "boolean", nullable: false },
     caption: { kind: "text", nullable: true },

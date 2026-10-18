@@ -1,0 +1,24 @@
+# Archive Data Quality Acceptance
+
+These are implementation gates, not results of the proposal review. All cases remain not run until implementation. Use isolated synthetic records; never seed the owner's database or call a paid provider for these cases.
+
+| ID | Case and required outcome | Verification boundary |
+| --- | --- | --- |
+| Q01 | A valid review preserves collection responsibility, creates the exact database-derived snapshot and points the entity to that event; invalid inputs leave neither partial events nor state. | Isolated SQL |
+| Q02 | Verified then disputed/pending on the same revision cannot be reversed by restoring the old pointer or status. Cross-entity/revision pointers and forged revisions fail. | Isolated SQL |
+| Q03 | Substantive changes increment once, clear the current decision and become pending; no-op/timestamp-only updates do not advance revision. Review updates do not recursively increment. | Isolated SQL |
+| Q04 | Direct verified/disputed INSERT without a matching decision fails. Unreviewed null/pending inserts remain possible. History UPDATE/DELETE/TRUNCATE and caller-supplied snapshots/order/time fail. | Isolated SQL |
+| Q05 | Two independent PostgreSQL 17 sessions exercise edit-before-review, review-before-edit, competing decisions without content edits (including a null previous decision), and rollback of the first locker. Null-safe stale expectations conflict; no review/snapshot is left for the wrong version. | Disposable PostgreSQL 17; PGlite does not close this gate |
+| Q06 | Each source table accepts its exact target fields and empty unscoped value, and rejects typos, padded names, other-target-only names and new operational fields. | Isolated SQL plus descriptor parity |
+| Q07 | Every text-array column accepts empty arrays and one-dimensional non-null multilingual strings, including literal `NULL`; null members and nonempty nested arrays fail. No automatic flattening or rewriting occurs. | Isolated SQL plus runtime parser |
+| Q08 | PUBLIC, anon and authenticated effective grants cannot access the ledger/sequence or execute new maintenance/helper functions. RLS/policy inspection agrees; existing exact search and business SELECT permissions remain. | Isolated role tests and live metadata/denial checks |
+| Q09 | Fresh initialization and migration from the preserved pre-change baseline agree on business fields, ledger constraints, triggers, function security and ACLs. Fresh installation plus historical setup order works; installed remote setup is not rerun. | Isolated SQL metadata comparison |
+| Q10 | Eight business tables remain explicitly projected; metadata inventory separately validates the ledger and rejects unexpected objects. The ledger creates no new graph expansion query. | Schema/type/release-inspection tests |
+| Q11 | New operational fields participate in drift detection but receive no model evidence keys or public reference acceptance. Normal scoped facts, uncertainty, source navigation/export and field validation still pass. | Service/answer tests and affected real-route browser cases |
+| Q12 | Image digests include every post-cleanup image field and both new managed fields. Changing any of these rejects a stale grant. Existing byte/permission/identity gates remain; no curated asset becomes product display content. | Vision/service tests |
+| Q13 | Preflight enumerates reachable old/new readers sharing the target and their grants. Old reference grants are absent or retired. The original explicit read projection works after additive SQL; the new one works before promotion. | Isolated old/new projection checks and exact deployed read-only smoke |
+| Q14 | Confirm independent thumbnail cleanup has matching code/database evidence before choosing this proposal's baseline. Review/ingestion work does not recreate the removed field or add gallery behavior. | Cleanup record and SQL/application/document review |
+| Q15 | Conflicting existing arrays/source fields/verified or disputed statuses stop migration until explicit reconciliation; bounded DDL failure rolls back without guessed repairs. A nonempty archive never becomes a deletion authorization. | Isolated populated-baseline migration/preflight cases |
+| Q16 | Application rollback preserves the additive schema and new decisions. A rehearsed backup/restore retains events, snapshots, revisions, pointers and statuses for a full reversal. A/B release evidence remains revision-specific. | Isolated restoration rehearsal and rollout record |
+
+After the implementation cases pass, run `npm run check`, the ordinary production build and affected real-route browser cases. Record actual commands, versions, pass counts and unavailable gates in a new implementation verification record. Local fixtures do not prove real source support, domain accuracy, live permissions or release milestone B.

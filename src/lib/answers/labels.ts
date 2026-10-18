@@ -8,7 +8,7 @@ export const FIELD_LABELS: Record<string, string> = {
   dating_notes: "断代说明", subject_primary: "主要题材", subject_details: "题材细节", iconography_notes: "图像学说明",
   materials_text: "材料", technique_text: "技法", height_cm: "高度（厘米）", width_cm: "宽度（厘米）", dimensions_notes: "尺寸说明",
   collection_name: "收藏机构", accession_number: "藏品编号", collection_location: "收藏地点", provenance_notes: "流传说明", description: "作品说明",
-  artwork_id: "作品编号", artist_id: "艺术家编号", role: "创作角色", storage_locator: "图片位置", thumbnail_locator: "缩略图位置",
+  artwork_id: "作品编号", artist_id: "艺术家编号", role: "创作角色", storage_locator: "图片位置",
   image_type: "图片类型", is_primary: "主要图片", caption: "图片说明", photographer_or_provider: "摄影者或提供方",
   rights_status: "权利状态", license_or_permission_reference: "授权依据", permission_notes: "授权说明", quality_notes: "图片质量说明",
   sha256: "图片校验值", pixel_width: "像素宽度", pixel_height: "像素高度", mime_type: "文件类型", byte_size: "文件大小",

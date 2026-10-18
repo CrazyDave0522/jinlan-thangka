@@ -2,7 +2,7 @@
 
 The initial archive uses PostgreSQL 13+ with all business tables in the `thangka` schema. The [schema reference](../database/schema.sql) contains complete fields, constraints, collection value mappings, and Excel import rules. This document describes the structure supplied on 2026-10-15; verify the deployed database before integration.
 
-`database/schema.sql` preserves the supplied initialization structure with comments and collection labels translated into English. It is outside automatic migration directories and targets a new database. It creates objects within a transaction; existing objects cause an error and rollback. Do not rerun it against an existing business database. Use separate incremental migrations for future structural changes.
+`database/schema.sql` started from the supplied initialization structure, with comments and collection labels translated into English, and incorporates reviewed structural changes. It is outside automatic migration directories and targets a new database. It creates objects within a transaction; existing objects cause an error and rollback. Do not rerun it against an existing business database. Use separate incremental migrations for existing databases.
 
 ## Tables and relationships
 
@@ -25,6 +25,7 @@ All tables except `artwork_artists`, which has a composite primary key, use data
 - Do not create placeholder artists for unknown authorship. The artwork `attribution_status` describes overall attribution, while `artwork_artists.attribution_status` describes a specific candidate. These are separate concepts. `not_recorded` differs from an explicitly `unknown` artist.
 - Only `images.is_primary` records primary image status; artworks have no primary image path or ID. A partial unique index allows at most one primary image per artwork, including none. To switch images, clear the old flag before setting the new one in the same transaction.
 - Images use a stable `storage_locator`, unique within each artwork. The `sha256` index is not unique, so the same file may appear in multiple records. Temporary signed URLs must not serve as persistent identifiers.
+- Separate thumbnails are outside the current conversation product. The unused `thumbnail_locator` field is removed by the reviewed [incremental cleanup](../database/migrations/20261018_remove_image_thumbnail.sql); collection templates should not request it. Deployment/type verification is recorded [separately](../openspec/changes/remove-unused-image-thumbnail/verification.md).
 - An accessible image or reviewed record does not grant permission to display the image or send it to a vision model. Evaluate `rights_status`, license evidence, and `permission_notes` for the intended use.
 - Preserve original period wording as text; populate normalized years only with evidence. Dimensions must be positive, with unknown values left blank. AI inferences, vectors, chats, and review history belong in separate future tables. Model output must not automatically overwrite human-curated information.
 - Store citation pages and specific facts on source relationships using `locator`, `supported_field`, and `evidence_notes`. Source records retain bibliographic information and collection wording; conflicting sources may support the same field.

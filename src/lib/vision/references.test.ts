@@ -38,6 +38,17 @@ it("does not fetch stale/denied grants or interpret arbitrary locator URLs as ne
   expect(selected.tasks).toEqual([]); expect(selected.reasons.get("G1")).toContain("reference_not_authorized");
   expect(await readReferences(selected, scope())).toEqual([]); expect(fetch).not.toHaveBeenCalled();
 });
+it("rejects grants pinned to the removed thumbnail row shape", async () => {
+  const f = await fixture();
+  expect(f.result.graph.images[0]).not.toHaveProperty("thumbnail_locator");
+  const oldDigest = digest(stable({ ...f.result.graph.images[0], thumbnail_locator: null }));
+  expect(oldDigest).not.toBe(rowDigest(f.result.graph.images[0]));
+  const oldManifest = { ...f.manifest, grants: [{ ...f.manifest.grants[0], rowDigest: oldDigest }] };
+  const selected = selectReferences(f.plan.groups, f.groups, f.result.graph, oldManifest);
+  expect(selected.references).toEqual([]);
+  expect(selected.reasons.get("G1")).toContain("reference_not_authorized");
+  expect(f.selection.references).toHaveLength(1);
+});
 it("downloads once through the actual stateless anon SDK and exposes only reference provenance", async () => {
   const f = await fixture();
   const fetch = vi.fn(async (url, init) => {

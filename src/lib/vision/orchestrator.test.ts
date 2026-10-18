@@ -123,7 +123,7 @@ it("keeps curated object locators out of text-only v2 model evidence and public 
   const completeMock = vi.fn<typeof complete>(async (_c, stage, messages) => {
     if (stage === "planner") return { content: { action: "answer", queries: [result.query] }, usage: {} };
     const payload = data(messages);
-    expect(payload.catalogue.some((f: { field: string }) => ["storage_locator", "thumbnail_locator"].includes(f.field))).toBe(false);
+    expect(payload.catalogue.some((f: { field: string }) => f.field === "storage_locator")).toBe(false);
     return { content: { blocks: [{ kind: "general", text: "图片的使用仍需结合授权依据核对。", evidenceKeys: [] }] }, usage: {} };
   });
   const answer = await generateV2(request, config, scope(), { complete: completeMock, retrieve: vi.fn(async () => result), selectReferences, readReferences: vi.fn() });

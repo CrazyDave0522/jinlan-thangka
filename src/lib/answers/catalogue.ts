@@ -74,5 +74,5 @@ export function publicReference(fact: CatalogueFact): AnswerReference {
   return ref;
 }
 export function buildAnswerCatalogue(graph: Graph) {
-  return buildCatalogue(graph).filter((fact) => fact.owner.table !== "images" || !["storage_locator", "thumbnail_locator"].includes(fact.field));
+  return buildCatalogue(graph).filter((fact) => fact.owner.table !== "images" || fact.field !== "storage_locator");
 }

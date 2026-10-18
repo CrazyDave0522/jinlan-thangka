@@ -101,7 +101,6 @@ CREATE TABLE thangka.images (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     artwork_id uuid NOT NULL REFERENCES thangka.artworks(id) ON DELETE RESTRICT,
     storage_locator text NOT NULL CHECK (btrim(storage_locator) <> ''),
-    thumbnail_locator text,
     image_type text CHECK (image_type IN ('full', 'detail', 'inscription', 'back',
                                         'mounting', 'other')),
     is_primary boolean NOT NULL DEFAULT false,
@@ -277,7 +276,6 @@ COMMENT ON TABLE thangka.images IS 'Image records; internal UUIDs are generated 
 COMMENT ON COLUMN thangka.images.storage_locator IS 'Image cloud address or file path. One image per row; prefer stable object paths over temporary signed URLs.';
 COMMENT ON COLUMN thangka.images.image_type IS 'Image type. Select the scope of the view shown.';
 COMMENT ON COLUMN thangka.images.is_primary IS 'Primary image flag. At most one per artwork; match the primary image path in the artwork collection template.';
-COMMENT ON COLUMN thangka.images.thumbnail_locator IS 'Thumbnail address or path. Record an existing thumbnail; collectors need not create one.';
 COMMENT ON COLUMN thangka.images.caption IS 'Image caption. Describe detail location, content, or photographic circumstances.';
 COMMENT ON COLUMN thangka.images.photographer_or_provider IS 'Photographer or provider. Preserve the image credit or supplied attribution.';
 COMMENT ON COLUMN thangka.images.rights_status IS 'Rights status. Use verified permission information; select pending if unverified.';
@@ -408,7 +406,6 @@ COMMIT;
 -- Image cloud address or file path -> storage_locator
 -- Image type -> image_type
 -- Primary image flag -> is_primary
--- Thumbnail address or path -> thumbnail_locator
 -- Image caption -> caption
 -- Photographer or provider -> photographer_or_provider
 -- Image source title or URL -> image_sources -> sources

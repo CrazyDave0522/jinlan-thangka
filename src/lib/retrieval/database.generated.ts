@@ -400,7 +400,6 @@ export type Database = {
           rights_status: string
           sha256: string | null
           storage_locator: string
-          thumbnail_locator: string | null
           updated_at: string
         }
         Insert: {
@@ -425,7 +424,6 @@ export type Database = {
           rights_status?: string
           sha256?: string | null
           storage_locator: string
-          thumbnail_locator?: string | null
           updated_at?: string
         }
         Update: {
@@ -450,7 +448,6 @@ export type Database = {
           rights_status?: string
           sha256?: string | null
           storage_locator?: string
-          thumbnail_locator?: string | null
           updated_at?: string
         }
         Relationships: [

@@ -12,6 +12,14 @@ These files are manually reviewed incremental setup artifacts, not automatically
 
 Both SQL files are transactional and intentionally use CREATE rather than silently overwriting existing objects. If their objects already exist, inspect versions rather than treating the error as permission to replace them.
 
+## Unused Thumbnail Removal
+
+`20261018_remove_image_thumbnail.sql` removes only `images.thumbnail_locator`, following the owner's development-stage cleanup authorization. Deploy its compatible reader first: the new projection works on both schemas, while an older reader still requests the removed field. Do not rerun the initializer or the installed search/read setup.
+
+The migration locks images with bounded timeouts, verifies the original nullable text column and requires images to be empty. Populated images or dependent objects cause rollback; it never uses CASCADE or deletes rows. The transaction preserves existing grants/policies and requests PostgREST schema-cache reload. Compare actual live types and anonymous eight-table/RPC reads after application. See the [cleanup verification](../../openspec/changes/remove-unused-image-thumbnail/verification.md).
+
+To restore an older reader after successful removal, first add back the nullable text column and its original comment, refresh the schema cache and verify that reader's projection. Do not roll an old reader onto the post-removal schema directly. No thumbnail values were discarded when the empty-table guard passed.
+
 ## Reconciliation and Rollback
 
 Keep the inspected pre-change grants/policies/RLS flags with the deployment record. If write privileges already exist, identify their origin (direct role grant, PUBLIC or inherited role). Revoke only the reviewed conflicting grants and rerun inspection; an inherited grant cannot be removed by merely revoking a direct anon grant. This repository cannot infer the correct reversal of unknown deployment-specific privileges.
